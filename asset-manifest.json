@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/hapunjabi/static/css/main.cc69e6b9.css",
+    "main.js": "/hapunjabi/static/js/main.259de883.js",
+    "static/js/787.71e672d5.chunk.js": "/hapunjabi/static/js/787.71e672d5.chunk.js",
+    "index.html": "/hapunjabi/index.html",
+    "main.cc69e6b9.css.map": "/hapunjabi/static/css/main.cc69e6b9.css.map",
+    "main.259de883.js.map": "/hapunjabi/static/js/main.259de883.js.map",
+    "787.71e672d5.chunk.js.map": "/hapunjabi/static/js/787.71e672d5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.cc69e6b9.css",
+    "static/js/main.259de883.js"
+  ]
+}
