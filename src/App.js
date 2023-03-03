@@ -14,11 +14,11 @@ function App() {
       {/* Social links */}
       <section className="SocialLinks">
         <ul>
-          <li><a href="https://github.com/hamzahap"><img src="./github.png" alt="GitHub " />Github</a></li>
+          <li><a href="https://github.com/hamzahap"><img src="./github.png" alt="GitHub" />Github</a></li>
           <li><a href="https://www.linkedin.com/in/hamzahpunjabi/"><img src="./linkedin.png" alt="LinkedIn" /></a> </li>
-          <li><a href="./HamzahPunjabi.pdf" target="_blank" rel="noopener noreferrer">Resume</a> </li>
-          <li><a href="mailto:hamzahqatar123@gmail.com">Email</a> </li>
-          <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY">St. John's, NL, Canada</a></li>
+          <li><a href="./HamzahPunjabi.pdf" target="_blank" rel="noopener noreferrer"><img src="./resume.png" alt="Resume" /></a> </li>
+          <li><a href="mailto:hamzahqatar123@gmail.com"><img src="./email.png" alt="Email" /></a> </li>
+          <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY"><img src="./location.jpg" alt="Location" /></a></li>
         </ul>
       </section>
 
