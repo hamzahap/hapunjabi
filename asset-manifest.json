@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/hapunjabi/static/css/main.11ee474c.css",
-    "main.js": "/hapunjabi/static/js/main.f6198416.js",
+    "main.js": "/hapunjabi/static/js/main.fa9474c1.js",
     "static/js/787.71e672d5.chunk.js": "/hapunjabi/static/js/787.71e672d5.chunk.js",
     "index.html": "/hapunjabi/index.html",
     "main.11ee474c.css.map": "/hapunjabi/static/css/main.11ee474c.css.map",
-    "main.f6198416.js.map": "/hapunjabi/static/js/main.f6198416.js.map",
+    "main.fa9474c1.js.map": "/hapunjabi/static/js/main.fa9474c1.js.map",
     "787.71e672d5.chunk.js.map": "/hapunjabi/static/js/787.71e672d5.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.11ee474c.css",
-    "static/js/main.f6198416.js"
+    "static/js/main.fa9474c1.js"
   ]
 }
