@@ -102,27 +102,27 @@ function App() {
         Developing a 2D multiplayer game using C# and Unity. The game includes various PvP modes and uses Steam’s API for hosting and multiplayer functionality.
       </li>
     </ul>
-  </section>
+      </section>
 
-  {/* Skills */}
-  <section className="SkillsSection">
-    <h2>Skills</h2>
-    <ul>
-      <li>
-        <i className="fab fa-python"></i>
-        <div>
-          <h3>Python</h3>
-          <p>Experience with data analysis, machine learning, and web development using frameworks such as Flask.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fab fa-html5"></i>
-        <div>
-          <h3>HTML/CSS</h3>
-          <p>Proficient in creating responsive and visually appealing web pages using modern web standards.</p>
-        </div>
-      </li>
-      <li>
+      {/* Skills */}
+      <section className="SkillsSection">
+        <h2>Skills</h2>
+        <ul>
+          <li>
+            <i className="fab fa-python"></i>
+            <div>
+              <h3>Python</h3>
+              <p>Experience with data analysis, machine learning, and web development using frameworks such as Flask.</p>
+            </div>
+          </li>
+          <li>
+            <i className="fab fa-html5"></i>
+            <div>
+              <h3>HTML/CSS</h3>
+              <p>Proficient in creating responsive and visually appealing web pages using modern web standards.</p>
+            </div>
+          </li>
+          <li>
         <i className="fas fa-database"></i>
         <div>
           <h3>Databases</h3>

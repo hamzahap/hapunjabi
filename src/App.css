@@ -1,3 +1,5 @@
+#root { text-align: justify; }
+
 /* Global styles */
 body {
   font-family: 'Montserrat', sans-serif;
@@ -36,6 +38,8 @@ header {
   color: #fff;
   padding: 8rem 2rem;
   text-align: center;
+  padding-left: 20%;
+  padding-right: 20%;
 }
 
 header h1 {
@@ -67,6 +71,8 @@ li:after {
   background-color: #f7f7f7;
   padding: 4rem 2rem;
   text-align: center;
+  padding-left: 20%;
+  padding-right: 20%;
 }
 
 .SocialLinks ul {
@@ -92,6 +98,8 @@ li:after {
 .EducationSection {
   background-color: #fff;
   padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
 }
 
 .EducationSection ul {
@@ -122,6 +130,8 @@ li:after {
 .WorkExperienceSection {
   background-color: #f7f7f7;
   padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
 }
 
 .WorkExperienceSection ul {
@@ -170,6 +180,8 @@ li:after {
 .CertificatesSection {
   background-color: #fff;
   padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
 }
 
 .CertificatesSection ul {
@@ -201,6 +213,8 @@ li:after {
   .ProjectsSection {
   background-color: #f7f7f7;
   padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
   }
   
   .ProjectsSection ul {
@@ -254,8 +268,10 @@ li:after {
   
   /* Skills section */
   .SkillsSection {
-  background-color: #f7f7f7;
+  background-color: #fff;
   padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
   }
   
   .SkillsSection ul {
@@ -293,6 +309,8 @@ li:after {
   color: #fff;
   padding: 2rem;
   text-align: center;
+  padding-left: 20%;
+  padding-right: 20%;
   }
   
   footer p {
