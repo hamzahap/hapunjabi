@@ -1,5 +1,3 @@
-#root { text-align: justify; }
-
 /* Global styles */
 body {
   font-family: 'Montserrat', sans-serif;
@@ -44,12 +42,12 @@ header {
 
 header h1 {
   font-size: 5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 header p {
   font-size: 2rem;
-  margin-bottom: 4rem;
+  margin-bottom: 2rem;
 }
 
 li:after {
@@ -116,13 +114,11 @@ li:after {
 
 .EducationSection h2 {
   font-size: 3rem;
-  margin-bottom: 4rem;
   text-align: center;
 }
 
 .EducationSection strong {
   font-size: 2rem;
-  margin-bottom: 1rem;
   color: #fca311;
 }
 
@@ -135,7 +131,7 @@ li:after {
 }
 
 .WorkExperienceSection ul {
-  list-style-type: none;
+  list-style-type: square;
   margin: 0;
   padding: 0;
 }
@@ -158,7 +154,7 @@ li:after {
 
 .WorkExperienceSection h2 {
   font-size: 3rem;
-  margin-bottom: 4rem;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
@@ -289,7 +285,7 @@ li:after {
   
   .SkillsSection h2 {
   font-size: 3rem;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
   text-align: center;
   }
   

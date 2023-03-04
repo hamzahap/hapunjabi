@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import './styles.css';
+import RockShooterGame from './rock';
 
 function App() {
   return (
@@ -28,13 +28,12 @@ function App() {
         <ul>
           <li>
             <strong>Bachelor of Science – Computer Science, MUN</strong><br />
-            January 2019 – August 2023<br />
-            GPA: 3.4
+            <p>January 2019 – August 2023<br />GPA: 3.4</p>
+            
           </li>
           <li>
             <strong>Diploma in Information Systems Software (58 credits), CNA-Q</strong><br />
-            September 2017 – December 2018<br />
-            GPA: 4.0
+            <p>September 2017 – December 2018<br />GPA: 4.0</p> 
           </li>
         </ul>
       </section>
@@ -42,10 +41,8 @@ function App() {
       {/* Work Experience */}
       <section className="WorkExperienceSection">
         <h2>Work Experience</h2>
-        <ul>
-          <li>
-            <strong>Software Developer Intern, SmartICE</strong><br /><br />
-            September 2021 - August 2022<br /><br />
+            <center><strong>Software Developer Intern, SmartICE</strong></center><br />
+            <center><b>September 2021 - August 2022</b></center><br />
             <ul>
               <li>Maintained a dashboard application for SmartICE technology utilizing Laravel, ReactJS, ChartJS and Leaflet.</li>
               <li>Integrated REST API functionality and caching into the dashboard to optimize database query performance.</li>
@@ -56,8 +53,6 @@ function App() {
               <li>Developed a Windows Forms feature in C# for SmartQAMUTIK data that enabled remote report generation, PDF conversion, Dropbox saving via Dropbox API, as well as remote viewing and sharing of SmartQAMUTIK data, resulting in improved efficiency and productivity.</li>
               <li>Documented comprehensive work instructions for clear and accurate knowledge sharing.</li>
             </ul>
-          </li>
-        </ul>
       </section>
 
       {/* Certificates */}
@@ -65,41 +60,43 @@ function App() {
         <h2>Certificates</h2>
         <ul>
           {/* Add your certificates details here */}
-          Will add them soon
+          Play this instead
         </ul>
+        <br />
+      <RockShooterGame />
       </section>
 
       {/* Projects */}
       <section className="ProjectsSection">
-        <h2>Projects</h2>
-        <ul>
-          <li>
-            <strong>Wine Quality (Fall 2023)</strong><br />
-        Conducted a data preprocessing project in Jupyter Notebook analyzing the Wine Quality Data Set from the UCI Machine Learning Repository. Conducted supervised learning, which included data analysis, feature engineering, creating missing values, and prediction of those missing values.
+      <h2>Projects</h2>
+      <ul>
+      <li>
+        <strong>Wine Quality (Fall 2023)</strong><br />
+        <p>Conducted a data preprocessing project in Jupyter Notebook analyzing the Wine Quality Data Set from the UCI Machine Learning Repository. Conducted supervised learning, which included data analysis, feature engineering, creating missing values, and prediction of those missing values.</p>
       </li>
       <li>
         <strong>EncryptionDecryption (Winter 2022)</strong><br />
-        Created a simple Encryption/Decryption/Backup script using PyMySQL, pandas, and Cryptography to back up database tables with CSV files.
+        <p>Created a simple Encryption/Decryption/Backup script using PyMySQL, pandas, and Cryptography to back up database tables with CSV files.</p>
       </li>
       <li>
         <strong>Blood2D (Fall 2022)</strong><br />
-        Developed a game using the SFML library in C++ as a group project. The game included advanced features such as collisions, inventory, game progression, shaders, custom user interface, advanced NPCs, and a custom level creation tool.
+        <p>Developed a game using the SFML library in C++ as a group project. The game included advanced features such as collisions, inventory, game progression, shaders, custom user interface, advanced NPCs, and a custom level creation tool.</p>
       </li>
       <li>
         <strong>Canadian Pollution Visualizer (Winter 2021)</strong><br />
-        Developed a web program using NodeJS for the backend and ReactJS for the frontend as a group project. The program enabled users to generate various types of graphs and filter data for the graphs.
+        <p>Developed a web program using NodeJS for the backend and ReactJS for the frontend as a group project. The program enabled users to generate various types of graphs and filter data for the graphs.</p>
       </li>
       <li>
         <strong>Quoridor Board Game (Fall 2020)</strong><br />
-        Built a board game using Java’s Swing and AWT components as a group project. The game allowed for individual player turns, movement of objects, calculating score, and a pathfinding algorithm.
+        <p>Built a board game using Java’s Swing and AWT components as a group project. The game allowed for individual player turns, movement of objects, calculating score, and a pathfinding algorithm.</p>
       </li>
       <li>
         <strong>Hangman (Fall 2017)</strong><br />
-        Created a hangman game using Python and the tkinter library as a course project. The game utilized a user-created word list to randomly choose words.
+        <p>Created a hangman game using Python and the tkinter library as a course project. The game utilized a user-created word list to randomly choose words.</p>
       </li>
       <li>
         <strong>BlockWars (Ongoing)</strong><br />
-        Developing a 2D multiplayer game using C# and Unity. The game includes various PvP modes and uses Steam’s API for hosting and multiplayer functionality.
+        <p>Developing a 2D multiplayer game using C# and Unity. The game includes various PvP modes and uses Steam’s API for hosting and multiplayer functionality.</p>
       </li>
     </ul>
       </section>
