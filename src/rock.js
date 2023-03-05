@@ -12,7 +12,7 @@ function RockShooterGame() {
       if (!isPaused) {
         setRocks(rocks => [...rocks, { x: Math.random() * (300 - 50), y:  Math.random() * (300 - 50)}]);
       }
-    }, 2000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [isPaused]);
 

@@ -5,6 +5,7 @@ body {
   margin: 0;
   padding: 0;
   color: #444;
+  zoom: 0.75;
 }
 
 h1,
@@ -314,9 +315,14 @@ li:after {
   }
   
   @media only screen and (max-width: 768px) {
+  
+  .WorkExperienceSection, .ProjectsSection, .SkillsSection, .EducationSection {
+  padding: 4rem 1rem;
+  }
+
   .SocialLinks ul {
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   }
   
   .EducationSection ul {
