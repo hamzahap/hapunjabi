@@ -14,11 +14,11 @@ function App() {
       {/* Social links */}
       <section className="SocialLinks">
         <ul>
-          <li><a href="https://github.com/hamzahap"><img src="./github1.png" alt="GitHub" /></a></li>
-          <li><a href="https://www.linkedin.com/in/hamzahpunjabi/"><img src="./linkedin.png" alt="LinkedIn" /></a> </li>
-          <li><a href="./HamzahPunjabi.pdf" target="_blank" rel="noopener noreferrer"><img src="./resume.png" alt="Resume" /></a> </li>
+          <li><a href="https://github.com/hamzahap" target="_blank" rel="noopener noreferrer"><img src="./github1.png" alt="GitHub" /></a></li>
+          <li><a href="https://www.linkedin.com/in/hamzahpunjabi/" target="_blank" rel="noopener noreferrer"><img src="./linkedin.png" alt="LinkedIn" /></a> </li>
+          <li><a href="./ResumeHP.pdf" target="_blank" rel="noopener noreferrer"><img src="./resume.png" alt="Resume" /></a> </li>
           <li><a href="mailto:hamzahqatar123@gmail.com"><img src="./email.png" alt="Email" /></a> </li>
-          <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY"><img src="./location.png" alt="Location" /></a></li>
+          <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY" target="_blank" rel="noopener noreferrer"><img src="./location.png" alt="Location" /></a></li>
         </ul>
       </section>
 
@@ -60,7 +60,7 @@ function App() {
         <h2>Certificates</h2>
         <ul>
           {/* Add your certificates details here */}
-          Play this instead
+          Play this instead 
         </ul>
         <br />
       <RockShooterGame />
@@ -95,6 +95,38 @@ function App() {
         <p>Created a hangman game using Python and the tkinter library as a course project. The game utilized a user-created word list to randomly choose words.</p>
       </li>
       <li>
+        <strong>This Website (Winter 2023)</strong><br />
+        <p>Developed a personal website using ReactJS and NodeJS and is hosted on Github Pages. The website showcases my skills, and includes a portfolio of my projects and achievements. Also includes a simple rock shooter game that doesn't make sense but exists.</p>
+      </li>
+      <li>
+        <strong>My Resume (Winter 2023)</strong><br />
+        <p>Wrote a professional resume in LaTeX, collaborated with peers to review and revise, and stayed up-to-date with industry trends.</p>
+      </li>
+      <li>
+        <strong>Advent of Code 2022 (Fall 2023)</strong><br />
+        <p>Completed the challenge in Google Sheets (Frustrating btw), using formulas and macros to automate data processing and analysis. Completed 10 out of 25 days.</p>
+      </li>
+      <li>
+        <strong>Resume Screening using NLP (Fall 2023)</strong><br />
+        <p>As part of a course project, our group investigated the use of natural language processing techniques, such as TF-IDF, Word2vec, and BERT, for automated resume screening.</p>
+      </li>
+      <li>
+        <strong>Advent of Code 2021 (Fall 2022)</strong><br />
+        <p>Completed the challenge in Python and numpy, solving problems using data structures and algorithms. Ranked 2nd on the MUN Computer Science Society leaderboard.</p>
+      </li>
+      <li>
+        <strong>Unity Projects (Winter 2019)</strong><br />
+        <p>Completed several beginner-level 2D games using Unity in my free time, including a skating game, a text adventure game, and a number wizard game. These projects demonstrate my interest in game development.</p>
+      </li>
+      <li>
+        <strong>MUNCS Automata Discord bot (Winter 2021)</strong><br />
+        <p>Contributed to the development of a Discord bot used by the MUN CS Society, adding several fun commands to the bot.</p>
+      </li>
+      <li>
+        <strong>hex16toint (Spring 2022)</strong><br />
+        <p>Developed a simple PHP/Python script to convert 16 bit hexadecimal numbers to signed integers.</p>
+      </li>
+      <li>
         <strong>BlockWars (Ongoing)</strong><br />
         <p>Developing a 2D multiplayer game using C# and Unity. The game includes various PvP modes and uses Steam’s API for hosting and multiplayer functionality.</p>
       </li>
@@ -109,7 +141,7 @@ function App() {
             <i className="fab fa-python"></i>
             <div>
               <h3>Python</h3>
-              <p>Experience with data analysis, machine learning, and web development using frameworks such as Flask.</p>
+              <p>Experience with data analysis, machine learning, and GUI.</p>
             </div>
           </li>
           <li>
@@ -165,7 +197,7 @@ function App() {
         <i className="fas fa-desktop"></i>
         <div>
           <h3>Visual Studio</h3>
-          <p>Experience with using Visual Studio for development of various applications, including C# Windows Forms and ASP.NET Web Applications.</p>
+          <p>Experience with using Visual Studio for development of various applications, including C# Windows Forms and .NET Console Applications.</p>
         </div>
       </li>
     </ul>

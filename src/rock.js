@@ -7,7 +7,7 @@ function RockShooterGame() {
   const [isPaused, setIsPaused] = useState(true);
 
   useEffect(() => {
-    // Create a new rock every 2 seconds
+    // Create a new rock every 1 second
     const interval = setInterval(() => {
       if (!isPaused) {
         setRocks(rocks => [...rocks, { x: Math.random() * (300 - 50), y:  Math.random() * (300 - 50)}]);

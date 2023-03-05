@@ -321,8 +321,17 @@ li:after {
   }
 
   .SocialLinks ul {
-  flex-direction: row;
-  align-items: center;
+  display: flex;
+  justify-content: center;
+  }
+
+  .SocialLinks li {
+  margin: 0 0.5rem;
+  }
+  
+  .SocialLinks img {
+  width: 30px;
+  height: 30px;
   }
   
   .EducationSection ul {
