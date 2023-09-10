@@ -1,6 +1,9 @@
 import React from 'react';
 import './App.css';
 import RockShooterGame from './rock';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faAws, faGit, faHtml5, faPython } from '@fortawesome/free-brands-svg-icons';
+import { faCloud, faCode, faDatabase, faDesktop, faGamepad } from '@fortawesome/free-solid-svg-icons';
 
 function App() {
   return (
@@ -16,7 +19,7 @@ function App() {
         <ul>
           <li><a href="https://github.com/hamzahap" target="_blank" rel="noopener noreferrer"><img src="./github1.png" alt="GitHub" /></a></li>
           <li><a href="https://www.linkedin.com/in/hamzahpunjabi/" target="_blank" rel="noopener noreferrer"><img src="./linkedin.png" alt="LinkedIn" /></a> </li>
-          <li><a href="./ResumeHP.pdf" target="_blank" rel="noopener noreferrer"><img src="./resume.png" alt="Resume" /></a> </li>
+          <li><a href="./ResumeHamzahPunjabi.pdf" target="_blank" rel="noopener noreferrer"><img src="./resume.png" alt="Resume" /></a> </li>
           <li><a href="mailto:hamzahqatar123@gmail.com"><img src="./email.png" alt="Email" /></a> </li>
           <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY" target="_blank" rel="noopener noreferrer"><img src="./location.png" alt="Location" /></a></li>
         </ul>
@@ -28,7 +31,7 @@ function App() {
         <ul>
           <li>
             <strong>Bachelor of Science – Computer Science, MUN</strong><br />
-            <p>January 2019 – August 2023<br />GPA: 3.4</p>
+            <p>January 2019 – August 2023<br />GPA: 3.46</p>
             
           </li>
           <li>
@@ -70,6 +73,10 @@ function App() {
       <section className="ProjectsSection">
       <h2>Projects</h2>
       <ul>
+      <li>
+        <strong>LaTeX Resume Tailor (Spring 2023)</strong><br />
+        <p>Developed a local web application using Python (Flask) for the backend and ReactJS for the frontend. The tool allows users to upload a LaTeX resume, select, rearrange, and edit specific sections, and then generate a tailored version emphasizing relevant experiences and skills for job applications.</p>
+      </li>
       <li>
         <strong>Wine Quality (Fall 2023)</strong><br />
         <p>Conducted a data preprocessing project in Jupyter Notebook analyzing the Wine Quality Data Set from the UCI Machine Learning Repository. Conducted supervised learning, which included data analysis, feature engineering, creating missing values, and prediction of those missing values.</p>
@@ -135,73 +142,66 @@ function App() {
 
       {/* Skills */}
       <section className="SkillsSection">
-        <h2>Skills</h2>
-        <ul>
-          <li>
-            <i className="fab fa-python"></i>
-            <div>
-              <h3>Python</h3>
-              <p>Experience with data analysis, machine learning, and GUI.</p>
-            </div>
-          </li>
-          <li>
-            <i className="fab fa-html5"></i>
-            <div>
-              <h3>HTML/CSS</h3>
-              <p>Proficient in creating responsive and visually appealing web pages using modern web standards.</p>
-            </div>
-          </li>
-          <li>
-        <i className="fas fa-database"></i>
-        <div>
-          <h3>Databases</h3>
-          <p>Experience with MySQL and MongoDB including database design, optimization, and maintenance.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fab fa-react"></i>
-        <div>
-          <h3>React.js</h3>
-          <p>Experience with building web applications using React.js, including state management, component composition, and testing.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fab fa-node-js"></i>
-        <div>
-          <h3>Node.js</h3>
-          <p>Experience with building server-side web applications using Node.js, including creating RESTful APIs and handling user authentication in Laravel.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fab fa-docker"></i>
-        <div>
-          <h3>Docker</h3>
-          <p>Familiarity with containerization technology and experience with deploying applications using Docker containers.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fas fa-code-branch"></i>
-        <div>
-          <h3>Git</h3>
-          <p>Experience with version control using Git and familiarity with GitHub workflow.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fas fa-database"></i>
-        <div>
-          <h3>Databases</h3>
-          <p>Experience working with various databases including MongoDB, MySQL, and SQLite. Familiarity with writing complex queries, indexing, and database design principles.</p>
-        </div>
-      </li>
-      <li>
-        <i className="fas fa-desktop"></i>
-        <div>
-          <h3>Visual Studio</h3>
-          <p>Experience with using Visual Studio for development of various applications, including C# Windows Forms and .NET Console Applications.</p>
-        </div>
-      </li>
-    </ul>
-  </section>
+  <h2>Skills</h2>
+  <ul>
+    <li>
+     
+      <div>
+        <h3>Python</h3> <FontAwesomeIcon icon={faPython} />
+        <p>Proficient in data analysis, machine learning, automation scripts, and GUI development with tkinter.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Web Development</h3> <FontAwesomeIcon icon={faHtml5} />
+        <p>Skilled in HTML, CSS, PHP, and JavaScript. Developed responsive web applications using frameworks like React.js, Laravel, Flask, and Node.js.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Databases</h3> <FontAwesomeIcon icon={faDatabase} />
+        <p>Proficient with relational and NoSQL databases like MySQL, MongoDB, and SQLite. Expertise in query optimization, backups, and data processing.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Programming Languages</h3> <FontAwesomeIcon icon={faCode} />
+        <p>Experienced in Python, C, C#, C++, Java, Fortran, and PHP. Developed various applications, games, and tools across platforms.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>AWS Services</h3> <FontAwesomeIcon icon={faAws} />
+        <p>Hands-on experience with services like EC2, S3, Lambda, RDS, and others for cloud solutions and deployments.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Version Control</h3> <FontAwesomeIcon icon={faGit} />
+        <p>Proficient in managing codebases and collaboration using Git and platforms like GitHub.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Game Development</h3> <FontAwesomeIcon icon={faGamepad} />
+        <p>Developed games using C++ with SFML, Java, and Unity in C#. Experience in 2D game mechanics, NPC interactions, and multiplayer functionalities.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Deployment & DevOps</h3> <FontAwesomeIcon icon={faCloud} />
+        <p>Familiar with containerization using Docker and deploying web apps on platforms like Heroku.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>IDEs & Tools</h3> <FontAwesomeIcon icon={faDesktop} />
+        <p>Proficient in tools like Visual Studio, Jupyter Notebook, and LaTeX for development, data processing, and documentation.</p>
+      </div>
+    </li>
+  </ul>
+</section>
+
 
   {/* Footer */}
   <footer>
