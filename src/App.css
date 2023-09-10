@@ -12,11 +12,11 @@ h1,
 h3 {
   font-family: 'Montserrat', sans-serif;
   font-weight: bold;
-  color: #fca311;
+  color: #dd8520;
 }
 
 a {
-  color: #fca311;
+  color: #c96b00;
   text-decoration: none;
   transition: all 0.3s;
 }
@@ -120,7 +120,7 @@ li:after {
 
 .EducationSection strong {
   font-size: 2rem;
-  color: #fca311;
+  color: #c96b00;
 }
 
 /* Work experience section */
@@ -162,7 +162,7 @@ li:after {
 .WorkExperienceSection strong {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #fca311;
+  color: #c96b00;
 }
 
 .WorkExperienceSection ul li:first-child:after {
@@ -203,7 +203,7 @@ li:after {
   .CertificatesSection strong {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #fca311;
+  color: #c96b00;
   }
   
   /* Projects section */
@@ -247,7 +247,7 @@ li:after {
   .ProjectsSection strong {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #fca311;
+  color: #c96b00;
   }
   
   .ProjectsSection ul li:first-child:after {
@@ -293,7 +293,7 @@ li:after {
   .SkillsSection i {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #fca311;
+  color: #c96b00;
   }
   
   .SkillsSection span {
