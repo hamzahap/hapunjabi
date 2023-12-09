@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import RockShooterGame from './rock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAws, faGit, faGithub, faHtml5, faLinkedin, faPython } from '@fortawesome/free-brands-svg-icons';
+import { faAws, faGit, faGithub, faHtml5, faLinkedin, faPython, faReact } from '@fortawesome/free-brands-svg-icons';
 import { faCloud, faCode, faDatabase, faDesktop, faEnvelope, faFile, faFileAlt, faGamepad, faLocationCrosshairs, faScroll, faUniversity } from '@fortawesome/free-solid-svg-icons';
 
 function App() {
@@ -19,9 +19,9 @@ function App() {
         <ul>
           <li><a href="https://github.com/hamzahap" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} color='#000000' size="2x" /></a></li>
           <li><a href="https://www.linkedin.com/in/hamzahpunjabi/" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLinkedin} color='#000000' size="2x" /></a> </li>
-          <li><a href="./ResumeHamzahPunjabi.pdf" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faFileAlt} color='#000000' size="2x" /></a> </li>
+          <li><a href="./ResumeHPQ.pdf" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faFileAlt} color='#000000' size="2x" /></a> </li>
           <li><a href="mailto:hamzahqatar123@gmail.com"><FontAwesomeIcon icon={faEnvelope} color='#000000' size="2x" /></a> </li>
-          <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLocationCrosshairs} color='#000000' size="2x" /></a></li>
+          {/* <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLocationCrosshairs} color='#000000' size="2x" /></a></li> */}
           <li><a href="./FinalOfficialTranscript.pdf"><FontAwesomeIcon icon={faScroll} color='#000000' size="2x" /></a> </li>
         </ul>
       </section>
@@ -67,7 +67,7 @@ function App() {
           <center><a href="https://www.credly.com/badges/1769a415-88da-4445-9447-f92b9ae73337" target="_blank" rel="noopener noreferrer"><img src="./badge.png" alt="AWS Badge" /></a></center>
         </ul>
         <br />
-      {/*<RockShooterGame />*/}
+      
       </section>
 
       {/* Projects */}
@@ -87,9 +87,19 @@ function App() {
         <p>Created a simple Encryption/Decryption/Backup script using PyMySQL, pandas, and Cryptography to back up database tables with CSV files.</p>
       </li>
       <li>
+          <strong>TaskTracker (Winter 2022)</strong><br />
+          <p>Developed a task management application using .NET Core and Entity Framework. Focused on clean architecture and best coding practices, integrated user authentication, designed a responsive user interface, and utilized database operations for task management.</p>
+      </li>
+      <li>
         <strong>Blood2D (Fall 2022)</strong><br />
         <p>Developed a game using the SFML library in C++ as a group project. The game included advanced features such as collisions, inventory, game progression, shaders, custom user interface, advanced NPCs, and a custom level creation tool.</p>
       </li>
+      
+      <li>
+          <strong>SimpleNotes (Fall 2022)</strong><br />
+          <p>Built a straightforward note-taking app using React Native. Aimed for a minimalist and user-friendly interface, provided basic features for creating, editing, and deleting notes, and ensured data persistence through local storage for offline access.</p>
+      </li>
+
       <li>
         <strong>Canadian Pollution Visualizer (Winter 2021)</strong><br />
         <p>Developed a web program using NodeJS for the backend and ReactJS for the frontend as a group project. The program enabled users to generate various types of graphs and filter data for the graphs.</p>
@@ -156,10 +166,18 @@ function App() {
     <li>
       <div>
         <h3>Web Development</h3> 
-        <p>Skilled in HTML, CSS, PHP, and JavaScript. Developed responsive web applications using frameworks like React.js, Laravel, Flask, and Node.js.</p>
+        <p>Skilled in HTML, CSS, PHP, and JavaScript. Developed responsive web applications, focusing on user-friendly designs and optimized performance.</p>
         <FontAwesomeIcon icon={faHtml5} />
       </div>
     </li>
+    <li>
+      <div>
+        <h3>Frameworks & Technologies</h3> 
+        <p>Proficient in using various frameworks and technologies including React.js, .NET Core, Laravel, Flask, Node.js, React Native, and Flutter. Developed cross-platform mobile applications and complex web applications.</p>
+        <FontAwesomeIcon icon={faReact} />
+      </div>
+    </li>
+
     <li>
       <div>
         <h3>Databases</h3> 
@@ -170,7 +188,7 @@ function App() {
     <li>
       <div>
         <h3>Programming Languages</h3> 
-        <p>Experienced in Python, C, C#, C++, Java, Fortran, and PHP. Developed various applications, games, and tools across platforms.</p>
+        <p>Experienced in Python, C, C#, C++, Dart, Java, Fortran, and PHP. Developed various applications, games, and tools across platforms.</p>
         <FontAwesomeIcon icon={faCode} />
       </div>
     </li>
@@ -210,6 +228,13 @@ function App() {
       </div>
     </li>
   </ul>
+</section>
+
+
+{/* RockShooterSection */}
+<section className="RockShooterSection">
+<h2>RokcC? c ?c/ </h2>
+<RockShooterGame />
 </section>
 
 

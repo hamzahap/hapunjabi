@@ -299,7 +299,17 @@ li:after {
   .SkillsSection span {
   font-weight: bold;
   }
+
+  /* Rock Shooter section */
+  .RockShooterSection {
+  background-color: #f7f7f7;
+  padding: 8rem 2rem;
+  padding-left: 20%;
+  padding-right: 20%;
+  align-items: center;
+  }
   
+
   /* Footer section */
   footer {
   background-color: #444;
