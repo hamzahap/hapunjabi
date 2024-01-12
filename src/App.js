@@ -19,7 +19,7 @@ function App() {
         <ul>
           <li><a href="https://github.com/hamzahap" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} color='#000000' size="2x" /></a></li>
           <li><a href="https://www.linkedin.com/in/hamzahpunjabi/" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLinkedin} color='#000000' size="2x" /></a> </li>
-          <li><a href="./ResumeHPQ.pdf" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faFileAlt} color='#000000' size="2x" /></a> </li>
+          <li><a href="./ResumeHP.pdf" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faFileAlt} color='#000000' size="2x" /></a> </li>
           <li><a href="mailto:hamzahqatar123@gmail.com"><FontAwesomeIcon icon={faEnvelope} color='#000000' size="2x" /></a> </li>
           {/* <li><a href="https://www.google.com/maps/place/St.+John's,+NL/@47.4825459,-52.9697214,11z/data=!3m1!4b1!4m6!3m5!1s0x4b0ca38e6b0aa261:0x9e1fd4001f12261f!8m2!3d47.5556097!4d-52.7452511!16zL20vMGo4cDY" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLocationCrosshairs} color='#000000' size="2x" /></a></li> */}
           <li><a href="./FinalOfficialTranscript.pdf"><FontAwesomeIcon icon={faScroll} color='#000000' size="2x" /></a> </li>
@@ -44,10 +44,20 @@ function App() {
 
       {/* Work Experience */}
       <section className="WorkExperienceSection">
-        <h2>Work Experience</h2>
-            <center><strong>Software Developer Intern, SmartICE</strong></center><br />
-            <center><b>September 2021 - August 2022</b></center><br />
-            <ul>
+          <h2>Work Experience</h2>
+          
+          <center><strong>Software Developer, Bin Yousef</strong></center><br />
+          <center><b>December 2023 - Present</b></center><br />
+          <ul>
+              <li>Developing a comprehensive web and mobile application using .NET Core, SQL database, and Flutter, leveraging a Sports API for dynamic data integration.</li>
+              <li>Implementing Azure pipelines with Git for continuous integration, delivery, and streamlined team collaboration.</li>
+              <li>Designing and developing API solutions for effective data communication and user interaction.</li>
+          </ul>
+          <br/>
+          <br/>
+          <center><strong>Software Developer Intern, SmartICE</strong></center><br />
+          <center><b>September 2021 - August 2022</b></center><br />
+          <ul>
               <li>Maintained a dashboard application for SmartICE technology utilizing Laravel, ReactJS, ChartJS and Leaflet.</li>
               <li>Integrated REST API functionality and caching into the dashboard to optimize database query performance.</li>
               <li>Streamlined team collaboration and project management for SmartICE technology with Jira, Asana, and Github.</li>
@@ -56,8 +66,9 @@ function App() {
               <li>Programmed ADXL343 accelerometer into the SmartBUOY board in C using CCS compiler as a feature.</li>
               <li>Developed a Windows Forms feature in C# for SmartQAMUTIK data that enabled remote report generation, PDF conversion, Dropbox saving via Dropbox API, as well as remote viewing and sharing of SmartQAMUTIK data, resulting in improved efficiency and productivity.</li>
               <li>Documented comprehensive work instructions for clear and accurate knowledge sharing.</li>
-            </ul>
+          </ul>
       </section>
+
 
       {/* Certificates */}
       <section className="CertificatesSection">
