@@ -5,7 +5,7 @@ body {
   margin: 0;
   padding: 0;
   color: #444;
-  zoom: 0.65;
+  zoom: 0.55;
 }
 
 h1,
@@ -365,6 +365,12 @@ li:after {
   flex-basis: auto;
   text-align: center;
   }
+  
+  .react-tabs__tab {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+  }
+
   
   
   }
