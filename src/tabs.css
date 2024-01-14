@@ -1,0 +1,76 @@
+.react-tabs {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .react-tabs__tab-list {
+    width: 100%;
+    border-bottom: 2px solid #333; /* Dark bottom border */
+    margin: 0;
+    height: 100px;
+    list-style: none;
+    display: flex; /* Ensure tabs are in a horizontal row */
+    
+  }
+  
+  .react-tabs__tab {
+    flex-grow: 1; /* Grow to fill the available space */
+    text-align: center; /* Center the tab title */
+    display: inline-block;
+    border: 1px solid transparent;
+    border-bottom: none;
+    position: relative;
+    padding: 30px 20px;
+    cursor: pointer;
+    background-color: #444;
+    color: white;
+    margin-right: 2px;
+  }
+  
+  
+  .react-tabs__tab:hover {
+    background-color: #555; /* Slightly darker on hover */
+  }
+  
+  .react-tabs__tab--selected {
+    background: #ff8c00; /* Orange background for selected tab */
+    color: black;
+    border-color: #ff8c00; /* Orange border color */
+    border-radius: 5px 5px 0 0;
+  }
+  
+  
+  .react-tabs__tab--disabled {
+    color: GrayText;
+    cursor: default;
+  }
+  
+  .react-tabs__tab:focus {
+    outline: none;
+  }
+  
+  .react-tabs__tab:focus:after {
+    content: '';
+    position: absolute;
+    height: 5px;
+    left: -4px;
+    right: -4px;
+    bottom: -5px;
+    background: #fff;
+  }
+  
+  .react-tabs__tab-panel {
+    display: none;
+  }
+  
+  .react-tabs__tab-panel--selected {
+    display: block;
+  }
+  
+
+  @media only screen and (max-width: 768px) {
+    .react-tabs__tab {
+      padding: 8px 10px; /* Smaller padding on smaller screens */
+      font-size: 0.9rem; /* Adjust font size if necessary */
+    }
+  }
+  

@@ -365,6 +365,15 @@ li:after {
   flex-basis: auto;
   text-align: center;
   }
-
+  
+  
+  /* @media (max-width: 768px) {
+    .react-tabs__tab {
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+  } */
+  
+  
   
   }
