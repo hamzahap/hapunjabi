@@ -5,13 +5,17 @@
 .shell {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  max-height: 100dvh;
+  /* Pinned to the viewport rather than sized by it. Height comes from
+     top/bottom, so it cannot depend on 100dvh resolving correctly or on an
+     unbroken chain of percentage heights — the shell simply IS the viewport.
+     Paired with interactive-widget=resizes-content so a mobile keyboard
+     shrinks the viewport instead of covering the prompt. */
+  position: fixed;
+  inset: 0;
   max-width: var(--max-w);
   margin: 0 auto;
   border-left: var(--border-w) solid var(--border);
   border-right: var(--border-w) solid var(--border);
-  position: relative;
   isolation: isolate;
   /* Nothing may escape the shell. Without this, an over-tall child spills
      past the bottom of the viewport and the whole page starts scrolling,
