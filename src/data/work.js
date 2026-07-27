@@ -9,13 +9,14 @@ export const work = [
       'Own the backend and platform for All Things Rugby and The Rugby App — live scores, stats, highlights and editorial for 50k+ downloads.',
     bullets: [
       'Designed, built and maintain the backend infrastructure behind All Things Rugby and The Rugby App, serving 50k+ downloads with live scores, stats, highlights and news across .NET, SQL, Next.js, Flutter and Firebase.',
-      'Built high-throughput REST APIs over multiple third-party data providers, reaching 900%+ performance gains through in-memory caching, aggregation and concurrency-safe refresh strategies.',
+      'Built high-throughput REST APIs over multiple third-party data providers, reaching 900%+ performance gains through Redis and in-memory caching of player and match data, aggregation and concurrency-safe refresh strategies.',
+      'Designed the Azure cloud architecture and built the Azure DevOps CI/CD pipelines, automating build, test and deployment across the API, worker, scheduler and scraper services.',
       'Architected an internal CRM/admin platform with role-based access for admins and authors, custom tournament management, and full API data override for matches, fixtures, incidents, stats, media and editorial content.',
       'Integrated a heavily customized TipTap editor with smart embeds, and shipped an AI article generator with selectable GPT models that drafts reports directly from live match data.',
       'Deployed and configured OpenClaw, an open-source AI assistant, with custom workflows that draft the daily rugby brief — pulling, deduplicating and ranking the latest news across sources into a consistent editorial format for review before publication.',
       'Set up OpenClaw to watch live match feeds through the weekend, flagging inbound third-party data that looks wrong against expected match state so the team is alerted before bad or stale provider data reaches users.',
     ],
-    tech: ['.NET', 'C#', 'SQL', 'Next.js', 'Flutter', 'Firebase', 'Azure DevOps', 'Docker', 'REST'],
+    tech: ['.NET', 'C#', 'SQL', 'Redis', 'Next.js', 'Flutter', 'Firebase', 'Azure', 'Azure DevOps', 'Docker', 'REST'],
   },
   {
     role: 'Software Developer',

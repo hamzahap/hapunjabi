@@ -1,7 +1,7 @@
 export const skills = [
   {
     label: 'Languages',
-    items: ['C#', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'Dart', 'Java', 'C', 'C++', 'GDScript', 'HTML', 'CSS'],
+    items: ['C#', 'Python', 'TypeScript', 'JavaScript', 'SQL', 'Dart', 'Java', 'C', 'C++', 'Rust', 'GDScript', 'HTML', 'CSS'],
   },
   {
     label: 'Backend & Platform',
