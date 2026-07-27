@@ -5,7 +5,7 @@ export const skills = [
   },
   {
     label: 'Backend & Platform',
-    items: ['.NET', 'ASP.NET Core', 'Entity Framework', 'Node.js', 'Spring Boot', 'Laravel', 'Flask', 'REST'],
+    items: ['.NET', 'ASP.NET Core', 'Entity Framework', 'Node.js', 'Fastify', 'Spring Boot', 'Laravel', 'Flask', 'FastAPI', 'REST'],
   },
   {
     label: 'Frontend & Mobile',
