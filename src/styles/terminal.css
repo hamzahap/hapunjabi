@@ -6,12 +6,17 @@
   display: flex;
   flex-direction: column;
   height: 100dvh;
+  max-height: 100dvh;
   max-width: var(--max-w);
   margin: 0 auto;
   border-left: var(--border-w) solid var(--border);
   border-right: var(--border-w) solid var(--border);
   position: relative;
   isolation: isolate;
+  /* Nothing may escape the shell. Without this, an over-tall child spills
+     past the bottom of the viewport and the whole page starts scrolling,
+     leaving dead background below the terminal. */
+  overflow: hidden;
 }
 
 /* subtle CRT texture — decorative only, disabled on paper theme */
@@ -110,9 +115,15 @@
 /* ---------- scroll region ---------- */
 
 .screen {
-  flex: 1;
+  flex: 1 1 auto;
+  /* A flex item's automatic minimum size is its content size, so without
+     min-height:0 this refuses to shrink, grows the shell past 100dvh and
+     the page scrolls instead of the terminal. This one line is what makes
+     the internal scrollbar work. */
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   padding: var(--sp-4);
   scroll-behavior: smooth;
   cursor: text;
