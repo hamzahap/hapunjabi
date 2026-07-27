@@ -1,0 +1,358 @@
+/* ============================================================
+   Terminal shell chrome
+   ============================================================ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  border-left: var(--border-w) solid var(--border);
+  border-right: var(--border-w) solid var(--border);
+  position: relative;
+  isolation: isolate;
+}
+
+/* subtle CRT texture — decorative only, disabled on paper theme */
+.shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+:root[data-theme='paper'] .shell::before {
+  display: none;
+}
+
+/* ---------- title bar ---------- */
+
+.titlebar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--bg-raised);
+  border-bottom: var(--border-w) solid var(--border);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  z-index: 6;
+}
+
+.titlebar__dots {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.titlebar__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--border-bright);
+}
+
+.titlebar__dot--r {
+  background: #ff5f57;
+}
+.titlebar__dot--y {
+  background: #febc2e;
+}
+.titlebar__dot--g {
+  background: #28c840;
+}
+
+.titlebar__title {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar__actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+.titlebar__btn {
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  border: 1px solid var(--border-ui);
+  border-radius: 2px;
+  background: var(--bg-inset);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.titlebar__btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+.titlebar__btn[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-glow);
+}
+
+/* ---------- scroll region ---------- */
+
+.screen {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--sp-4);
+  scroll-behavior: smooth;
+  cursor: text;
+}
+
+.screen__inner {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.block {
+  margin-bottom: var(--sp-3);
+  animation: block-in 0.18s ease-out;
+}
+
+@keyframes block-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.block--echo {
+  margin-bottom: var(--sp-2);
+}
+
+/* ---------- prompt ---------- */
+
+.prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6ch;
+  flex-wrap: wrap;
+}
+
+.prompt__user {
+  color: var(--accent);
+  font-weight: 500;
+  flex: none;
+}
+
+.prompt__path {
+  color: var(--link);
+  flex: none;
+}
+
+.prompt__sigil {
+  color: var(--fg-dim);
+  flex: none;
+}
+
+.prompt__cmd {
+  color: var(--fg);
+  white-space: pre-wrap;
+}
+
+/* live input line */
+
+.inputline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6ch;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.inputline__field {
+  position: relative;
+  flex: 1 1 12ch;
+  min-width: 0;
+}
+
+.inputline__input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg);
+  font: inherit;
+  padding: 0;
+  caret-color: transparent;
+}
+
+/* the drawn caret, positioned over the real (transparent-caret) input */
+.inputline__mirror {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  white-space: pre;
+  color: transparent;
+  overflow: hidden;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.62ch;
+  height: 1.15em;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: blink 1.05s steps(1) infinite;
+}
+
+.caret--idle {
+  opacity: 0.35;
+  animation: none;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* inline ghost completion */
+.ghost {
+  color: var(--fg-faint);
+}
+
+/* ---------- output text ---------- */
+
+.out {
+  white-space: pre-wrap;
+  color: var(--fg-dim);
+}
+
+.out--plain {
+  color: var(--fg);
+}
+
+.out--err {
+  color: var(--danger);
+}
+
+.out a {
+  color: var(--link);
+}
+
+/* boot sequence */
+
+.boot__line {
+  white-space: pre-wrap;
+  color: var(--fg-dim);
+}
+
+.boot__ok {
+  color: var(--accent);
+}
+
+.boot__banner {
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1.15;
+  font-size: clamp(0.6rem, 2.4vw, 0.95rem);
+  white-space: pre;
+  overflow-x: auto;
+  margin-bottom: var(--sp-3);
+  text-shadow: 0 0 18px var(--accent-glow);
+}
+
+/* ---------- hint bar ---------- */
+
+.hintbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-top: var(--border-w) solid var(--border);
+  background: var(--bg-raised);
+  font-size: 0.75rem;
+  color: var(--fg-faint);
+  overflow-x: auto;
+  z-index: 6;
+}
+
+.hintbar__label {
+  flex: none;
+  color: var(--fg-faint);
+}
+
+.hintbar__chips {
+  display: flex;
+  gap: var(--sp-2);
+  flex: 1;
+}
+
+.chip {
+  flex: none;
+  padding: 3px 10px;
+  color: var(--fg-dim);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-ui);
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.chip:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+kbd {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 0 4px;
+  color: var(--fg-dim);
+  border: 1px solid var(--border-ui);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--bg-inset);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 700px) {
+  body {
+    font-size: 13px;
+  }
+
+  .shell {
+    border-left: none;
+    border-right: none;
+  }
+
+  .screen {
+    padding: var(--sp-3);
+  }
+
+  .titlebar__title {
+    font-size: 0.72rem;
+  }
+}
