@@ -7,7 +7,7 @@ import { Out } from '../panels/Panel.jsx'
 const PROMPT_USER = 'hamzah@hap-os'
 const PROMPT_PATH = '~'
 const THEME_KEY = 'hap-theme'
-const QUICK = ['whoami', 'ps', 'work', 'stack', 'arcade', 'uses', 'logs', 'resume', 'contact']
+const QUICK = ['whoami', 'ps', 'work', 'stack', 'arcade', 'catan', 'uses', 'logs', 'resume', 'contact']
 
 function prefersReducedMotion() {
   return (
@@ -441,7 +441,7 @@ export default function Terminal() {
 
   const focusInput = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('a, button')) return
+    if (e.target.closest('a, button, input, select, textarea, label')) return
     inputRef.current?.focus()
   }
 

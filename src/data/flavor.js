@@ -60,6 +60,8 @@ export const manPages = {
   stack: 'stack — read the long version.\n\nWithout arguments, lists available writeups. With a topic, renders it. These are the things I would actually talk about in an interview, written down so I do not have to.',
   arch: 'arch — draw the All Things Rugby data path.\n\nA whiteboard diagram of how a scoreline gets from a provider to a phone, and where the checks sit relative to the cache. The placement is the whole point.',
   arcade: 'arcade — play something.\n\nLinks to the shipped mobile games, plus the rock shooter that has been on this site since 2023 for no defensible reason.',
+  catan:
+    'catan — generate a Catan board.\n\nBase game, Seafarers (Heading for New Shores), Cities & Knights and Traders & Barbarians, for 3–4 or 5–6 players. Four modes: beginner enforces every fairness rule, advanced is the tournament default, strategy makes one resource scarce and lets the good land cluster, chaos is a straight shuffle.\n\nBoards are seeded. `catan seafarers 6 strategy k3x9pq` gives everyone at the table the same map, and the copy-link button gives you a URL that opens it.',
   theme: 'theme — change the palette.\n\nmatrix (default), amber, ice, or paper. Paper is a light high-contrast theme for people who would rather not read green on black. Your choice is remembered.',
   kill: 'kill — send a signal to a process.\n\nIt will not work. Nothing here is killable. Some processes have opinions about being asked.',
   fortune: 'fortune — print a randomly selected adage.\n\nOpinions formed the expensive way.',

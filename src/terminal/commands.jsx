@@ -5,6 +5,7 @@ import { fortunes, manPages, train, teapot } from '../data/flavor.js'
 import { ProjectDetail } from '../panels/ProjectPanels.jsx'
 import { ProcessTable } from '../panels/ProcessTable.jsx'
 import { ArcadePanel } from '../panels/Arcade.jsx'
+import { CatanPanel, parseCatanArgs, CATAN_TOKENS } from '../panels/CatanPanel.jsx'
 import { StackPanel, UsesPanel, LogsPanel } from '../panels/SectionPanels.jsx'
 import { ArchDiagram } from '../panels/ArchDiagram.jsx'
 import { Panel, Out } from '../panels/Panel.jsx'
@@ -181,6 +182,14 @@ export function buildRegistry() {
       group: 'The work',
       desc: 'Playable things, including one that makes no sense',
       run: () => <ArcadePanel />,
+    },
+    {
+      name: 'catan',
+      usage: 'catan [game] [players] [mode] [seed]',
+      group: 'The work',
+      desc: 'Catan board generator: base game and expansions, 3–4 or 5–6 players, four balance modes',
+      complete: (p) => CATAN_TOKENS.filter((t) => t.startsWith(p)),
+      run: (args) => <CatanPanel initial={parseCatanArgs(args)} />,
     },
     {
       name: 'stack',
