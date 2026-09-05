@@ -195,15 +195,12 @@ export const MODES = {
       'Every rule of thumb, enforced: 6 and 8 kept apart, 2 and 12 kept apart, no repeated number or terrain touches itself, pips are spread evenly across resources, the strongest corners are spaced around the island, and 2:1 harbours stay away from their own resource.',
     iterations: 4000,
     w: {
-      sameNum: 60,
-      sameTerrain: 40,
       redSameRes: 40,
       goldRed: 400,
       pip: 12,
       maxSpot: 30,
       maxSpotCap: 12,
       spread: 25,
-      harborSame: 80,
       harborStrong: 20,
       harborStrongCap: 10,
     },
@@ -212,10 +209,9 @@ export const MODES = {
     label: 'Advanced',
     short: 'tournament defaults',
     desc:
-      'The usual competitive setup: 6 and 8 never touch, resources balanced to within a few pips, same-terrain clusters capped at pairs, and a 2:1 harbour may touch its resource unless that hex carries a red number.',
+      'The usual competitive setup: 6 and 8 kept apart, no repeated number touching itself, resources balanced to within a few pips, same-terrain clusters capped at pairs, and a 2:1 harbour may touch its resource unless that hex carries a red number.',
     iterations: 3000,
     w: {
-      sameNum: 20,
       sameTerrain: 6,
       cluster: 40,
       redSameRes: 15,
@@ -261,50 +257,102 @@ export const MODES = {
  * must touch). Modes supply defaults; the panel lets players override them.
  */
 export const RULE_STATES = ['apart', 'free', 'touch']
+export const DESERT_STATES = ['inland', 'free', 'coast']
 export const RULE_DEFAULTS = {
-  beginner: { r68: 'apart', r212: 'apart' },
-  advanced: { r68: 'apart', r212: 'free' },
-  strategy: { r68: 'apart', r212: 'free' },
-  chaos: { r68: 'free', r212: 'free' },
+  beginner: { r68: 'apart', r212: 'apart', rnum: 'apart', rter: 'apart', rharb: 'apart', rdesert: 'free' },
+  advanced: { r68: 'apart', r212: 'free', rnum: 'apart', rter: 'free', rharb: 'free', rdesert: 'free' },
+  strategy: { r68: 'apart', r212: 'free', rnum: 'free', rter: 'free', rharb: 'free', rdesert: 'free' },
+  chaos: { r68: 'free', r212: 'free', rnum: 'free', rter: 'free', rharb: 'free', rdesert: 'free' },
 }
 const RULE_APART = 1000 // per offending pair
 const RULE_TOUCH = 600 // when no pair touches at all
 
 const isTwoTwelve = (x, y) => x != null && y != null && x + y === 14 && Math.abs(x - y) === 10
 
+/** Everything the rules and the stats panel care about, counted once. */
+function measure(st, g) {
+  const { nbr, verts, harbors, landIds, isLand } = g
+  const { terrain, number, harborTok } = st
+  const isRed = (i) => number[i] === 6 || number[i] === 8
+  const m = {
+    red: 0,
+    twoTwelve: 0,
+    sameNum: 0,
+    sameTerrain: 0,
+    harbSame: 0,
+    harbSameRed: 0,
+    deserts: 0,
+    desertCoast: 0,
+  }
+  for (const a of landIds) {
+    if (terrain[a] === 'desert') {
+      m.deserts++
+      if (nbr[a].length < 6 || nbr[a].some((b) => !isLand[b])) m.desertCoast++
+    }
+    for (const b of nbr[a]) {
+      if (b <= a || !isLand[b]) continue
+      if (isRed(a) && isRed(b)) m.red++
+      if (isTwoTwelve(number[a], number[b])) m.twoTwelve++
+      if (number[a] != null && number[a] === number[b]) m.sameNum++
+      if (terrain[a] === terrain[b] && terrain[a] !== 'desert') m.sameTerrain++
+    }
+  }
+  for (let k = 0; k < harbors.length; k++) {
+    const tok = harborTok[k]
+    if (tok.ratio !== 2) continue
+    const h = harbors[k]
+    let same = false
+    let sameRed = false
+    for (const id of verts[h.va].cells.concat(verts[h.vb].cells)) {
+      if (!isLand[id] || TERRAIN[terrain[id]].resource !== tok.resource) continue
+      same = true
+      if (isRed(id)) sameRed = true
+    }
+    if (same) m.harbSame++
+    if (sameRed) m.harbSameRed++
+  }
+  return m
+}
+
+function rulePenalty(rule, count) {
+  if (rule === 'apart') return RULE_APART * count
+  if (rule === 'touch' && count === 0) return RULE_TOUCH
+  return 0
+}
+
 // ---------- scoring ----------
 
 function evaluate(st, g, W, resWeight, scarce, rules) {
-  const { nbr, verts, harbors, landIds, isLand, mainVerts, sector } = g
-  const { terrain, number, harborTok } = st
+  const { nbr, verts, landIds, isLand, mainVerts, sector } = g
+  const { terrain, number } = st
   let s = 0
   const isRed = (i) => number[i] === 6 || number[i] === 8
   const resOf = (i) => TERRAIN[terrain[i]].resource
 
-  let samePairs = 0
-  let redPairs = 0
-  let twoTwelvePairs = 0
-  for (const a of landIds) {
-    for (const b of nbr[a]) {
-      if (b <= a || !isLand[b]) continue
-      if (terrain[a] === terrain[b] && terrain[a] !== 'desert') samePairs++
-      if (isRed(a) && isRed(b)) redPairs++
-      if (isTwoTwelve(number[a], number[b])) twoTwelvePairs++
-      if (W.sameNum && number[a] != null && number[a] === number[b]) s += W.sameNum
-      if (W.sameTerrain && terrain[a] === terrain[b] && terrain[a] !== 'desert') s += W.sameTerrain
-    }
-  }
+  const m = measure(st, g)
+  const samePairs = m.sameTerrain
+  s += rulePenalty(rules.r68, m.red)
+  s += rulePenalty(rules.r212, m.twoTwelve)
+  s += rulePenalty(rules.rnum, m.sameNum)
+  s += rulePenalty(rules.rter, m.sameTerrain)
+  s += rulePenalty(rules.rharb, m.harbSame)
+  if (rules.rdesert === 'inland') s += RULE_APART * m.desertCoast
+  else if (rules.rdesert === 'coast') s += RULE_APART * (m.deserts - m.desertCoast)
 
-  if (rules.r68 === 'apart') s += RULE_APART * redPairs
-  else if (rules.r68 === 'touch' && redPairs === 0) s += RULE_TOUCH
-  if (rules.r212 === 'apart') s += RULE_APART * twoTwelvePairs
-  else if (rules.r212 === 'touch' && twoTwelvePairs === 0) s += RULE_TOUCH
+  // The mode's own opinions on harbours and terrain only apply while the
+  // matching rule is left free; a pinned rule replaces them.
+  if (rules.rharb === 'free') {
+    if (W.harborSameRed) s += W.harborSameRed * m.harbSameRed
+    if (W.harborCombo) s += W.harborCombo * Math.min(m.harbSame, 2)
+  }
+  if (W.sameTerrain && rules.rter === 'free') s += W.sameTerrain * samePairs
 
   // Strategy mode wants some clustering, not a monoculture: aim for a set
   // number of same-terrain pairs and penalise straying either side of it.
-  if (W.clusterPen) s += W.clusterPen * Math.abs(samePairs - Math.round(W.clusterTarget * landIds.length))
+  if (W.clusterPen && rules.rter === 'free')
+    s += W.clusterPen * Math.abs(samePairs - Math.round(W.clusterTarget * landIds.length))
 
-  if (W.cluster || W.megacluster) {
+  if ((W.cluster || W.megacluster) && rules.rter !== 'apart') {
     for (const a of landIds) {
       if (terrain[a] === 'desert') continue
       let k = 0
@@ -366,50 +414,26 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
     }
   }
 
-  let combos = 0
-  for (let k = 0; k < harbors.length; k++) {
-    const h = harbors[k]
-    const tok = harborTok[k]
-    if (W.harborStrong)
+  if (W.harborStrong)
+    for (const h of g.harbors)
       s += W.harborStrong * Math.max(0, Math.max(vp[h.va], vp[h.vb]) - W.harborStrongCap)
-    if (tok.ratio !== 2) continue
-    const seen = new Set()
-    for (const id of verts[h.va].cells.concat(verts[h.vb].cells)) {
-      if (seen.has(id) || !isLand[id]) continue
-      seen.add(id)
-      if (resOf(id) !== tok.resource) continue
-      if (W.harborSame) s += W.harborSame
-      if (W.harborSameRed && isRed(id)) s += W.harborSameRed
-      combos++
-    }
-  }
-  // Strategy mode rewards a couple of harbour-on-its-own-resource combos, not all of them.
-  if (W.harborCombo) s += W.harborCombo * Math.min(combos, 2)
 
   return s
 }
 
-function countPairs(st, g) {
-  let red = 0
-  let twoTwelve = 0
-  const isRed = (i) => st.number[i] === 6 || st.number[i] === 8
-  for (const a of g.landIds)
-    for (const b of g.nbr[a]) {
-      if (b <= a || !g.isLand[b]) continue
-      if (isRed(a) && isRed(b)) red++
-      if (isTwoTwelve(st.number[a], st.number[b])) twoTwelve++
-    }
-  return { red, twoTwelve }
-}
-
-/** True when the board honours every hard adjacency rule. */
+/** True when the board honours every pinned rule. */
 function rulesSatisfied(st, g, rules) {
-  const { red, twoTwelve } = countPairs(st, g)
-  if (rules.r68 === 'apart' && red > 0) return false
-  if (rules.r68 === 'touch' && red === 0) return false
-  if (rules.r212 === 'apart' && twoTwelve > 0) return false
-  if (rules.r212 === 'touch' && twoTwelve === 0) return false
-  return true
+  const m = measure(st, g)
+  const pair = (rule, count) => (rule === 'apart' ? count === 0 : rule === 'touch' ? count > 0 : true)
+  return (
+    pair(rules.r68, m.red) &&
+    pair(rules.r212, m.twoTwelve) &&
+    pair(rules.rnum, m.sameNum) &&
+    pair(rules.rter, m.sameTerrain) &&
+    pair(rules.rharb, m.harbSame) &&
+    (rules.rdesert === 'inland' ? m.desertCoast === 0 : true) &&
+    (rules.rdesert === 'coast' ? m.desertCoast === m.deserts : true)
+  )
 }
 
 // ---------- state + moves ----------
@@ -518,7 +542,7 @@ function anneal(st, g, mode, resWeight, scarce, rules, N, rng) {
 // ---------- stats ----------
 
 function computeStats(st, g) {
-  const { nbr, verts, landIds, isLand, mainVerts } = g
+  const { verts, landIds, isLand, mainVerts } = g
   const { terrain, number } = st
   const pips = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0, gold: 0 }
   const hexes = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0, gold: 0 }
@@ -528,15 +552,7 @@ function computeStats(st, g) {
     hexes[r]++
     pips[r] += PIPS[number[a]] || 0
   }
-  let sameNum = 0
-  let sameTerrain = 0
-  for (const a of landIds)
-    for (const b of nbr[a]) {
-      if (b <= a || !isLand[b]) continue
-      if (number[a] != null && number[a] === number[b]) sameNum++
-      if (terrain[a] === terrain[b] && terrain[a] !== 'desert') sameTerrain++
-    }
-  const { red: redAdj, twoTwelve } = countPairs(st, g)
+  const m = measure(st, g)
   const vp = verts.map((v) => {
     let p = 0
     for (const id of v.cells) if (isLand[id] && number[id] != null) p += PIPS[number[id]]
@@ -561,10 +577,13 @@ function computeStats(st, g) {
   return {
     pips,
     hexes,
-    redAdj,
-    twoTwelve,
-    sameNum,
-    sameTerrain,
+    redAdj: m.red,
+    twoTwelve: m.twoTwelve,
+    sameNum: m.sameNum,
+    sameTerrain: m.sameTerrain,
+    harbSame: m.harbSame,
+    deserts: m.deserts,
+    desertCoast: m.desertCoast,
     spots,
     maxSpot: spots.length ? spots[0].pips : 0,
   }
@@ -592,7 +611,7 @@ export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides
 
   // Chaos has no scoring of its own, but a forced or forbidden adjacency
   // still needs a short search to satisfy it.
-  const hasHardRule = rules.r68 !== 'free' || rules.r212 !== 'free'
+  const hasHardRule = Object.values(rules).some((v) => v !== 'free')
   const iterations = mode.iterations || (hasHardRule ? 1500 : 0)
 
   let result = null

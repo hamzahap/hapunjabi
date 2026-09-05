@@ -258,7 +258,7 @@ export default function Terminal() {
     const hash = window.location.hash.replace(/^#\/?/, '')
     if (hash) {
       const cmd = decodeURIComponent(hash).replace(/\//g, ' ').trim()
-      if (/^[\w\s.-]{1,60}$/.test(cmd)) runCommand(cmd)
+      if (/^[\w\s.-]{1,140}$/.test(cmd)) runCommand(cmd)
     }
   }, [push, runCommand])
 

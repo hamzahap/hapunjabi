@@ -1,6 +1,13 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Panel } from './Panel.jsx'
-import { generateBoard, MODES, RULE_DEFAULTS, RULE_STATES, randomSeed } from '../catan/generator.js'
+import {
+  generateBoard,
+  MODES,
+  RULE_DEFAULTS,
+  RULE_STATES,
+  DESERT_STATES,
+  randomSeed,
+} from '../catan/generator.js'
 import { GAMES, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
 
 const R = 40 // hex radius in SVG units
@@ -36,12 +43,42 @@ const MODE_ALIASES = {
 }
 const PLAYER_ALIASES = { 3: 4, 4: 4, '3-4': 4, 34: 4, 5: 6, 6: 6, '5-6': 6, 56: 6 }
 
-/** `68-touch`, `212-apart`, … override the mode's adjacency defaults. */
+/** `68-touch`, `desert-coast`, … override the mode's defaults for one rule. */
+const PAIR_TITLES = {
+  apart: 'never next to each other',
+  free: 'no rule',
+  touch: 'at least one pair next to each other',
+}
 const RULES = [
-  { key: 'r68', token: '68', label: '6 & 8' },
-  { key: 'r212', token: '212', label: '2 & 12' },
+  { key: 'r68', token: '68', label: '6 & 8', states: RULE_STATES, titles: PAIR_TITLES },
+  { key: 'r212', token: '212', label: '2 & 12', states: RULE_STATES, titles: PAIR_TITLES },
+  { key: 'rnum', token: 'num', label: 'same number', states: RULE_STATES, titles: PAIR_TITLES },
+  { key: 'rter', token: 'terrain', label: 'same terrain', states: RULE_STATES, titles: PAIR_TITLES },
+  {
+    key: 'rharb',
+    token: 'harbour',
+    aliases: ['harbor', 'port'],
+    label: '2:1 harbour',
+    states: RULE_STATES,
+    titles: {
+      apart: 'no 2:1 harbour touches a hex of its own resource',
+      free: 'no rule (the mode may still have an opinion)',
+      touch: 'at least one 2:1 harbour touches its own resource',
+    },
+  },
+  {
+    key: 'rdesert',
+    token: 'desert',
+    label: 'desert',
+    states: DESERT_STATES,
+    titles: {
+      inland: 'desert surrounded by land',
+      free: 'no rule',
+      coast: 'desert on the coast',
+    },
+  },
 ]
-const RULE_TOKENS = RULES.flatMap((r) => RULE_STATES.map((s) => `${r.token}-${s}`))
+const RULE_TOKENS = RULES.flatMap((r) => r.states.map((s) => `${r.token}-${s}`))
 
 export const CATAN_TOKENS = Array.from(
   new Set([
@@ -60,12 +97,14 @@ export function parseCatanArgs(args = []) {
   const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {} }
   for (const raw of args) {
     const t = raw.toLowerCase().replace(/^--/, '')
-    const rule = RULES.find((r) => t.startsWith(r.token + '-'))
+    const dash = t.indexOf('-')
+    const head = dash > 0 ? t.slice(0, dash) : ''
+    const state = dash > 0 ? t.slice(dash + 1) : ''
+    const rule = RULES.find((r) => r.token === head || (r.aliases || []).includes(head))
     if (GAME_ALIASES[t]) out.game = GAME_ALIASES[t]
     else if (MODE_ALIASES[t]) out.mode = MODE_ALIASES[t]
     else if (PLAYER_ALIASES[t]) out.players = PLAYER_ALIASES[t]
-    else if (rule && RULE_STATES.includes(t.slice(rule.token.length + 1)))
-      out.rules[rule.key] = t.slice(rule.token.length + 1)
+    else if (rule && rule.states.includes(state)) out.rules[rule.key] = state
     else if (!out.seed && /^[\w.-]{1,24}$/.test(t)) out.seed = t
   }
   if (out.game === 'explorers') out.game = 'base'
@@ -400,17 +439,26 @@ function Spots({ stats }) {
 }
 
 function ruleCheck(label, rule, count) {
-  if (rule === 'touch') return { label: `${label} touching`, ok: count > 0, detail: `${count} pairs touching` }
+  if (rule === 'touch') return { label: `${label} touching`, ok: count > 0, detail: `${count} touching` }
   if (rule === 'free') return { label: `${label} ${count ? 'touching' : 'apart'}`, ok: true, detail: 'no rule set' }
   return { label: `${label} apart`, ok: count === 0, detail: `${count} touching` }
+}
+
+function desertCheck(rule, stats) {
+  const where = stats.desertCoast === 0 ? 'inland' : stats.desertCoast === stats.deserts ? 'on coast' : 'split'
+  if (rule === 'inland') return { label: 'desert inland', ok: stats.desertCoast === 0, detail: where }
+  if (rule === 'coast') return { label: 'desert on coast', ok: stats.desertCoast === stats.deserts, detail: where }
+  return { label: `desert ${where}`, ok: true, detail: 'no rule set' }
 }
 
 function Checks({ stats, rules }) {
   const items = [
     ruleCheck('6 and 8', rules.r68, stats.redAdj),
     ruleCheck('2 and 12', rules.r212, stats.twoTwelve),
-    { label: 'numbers apart', ok: stats.sameNum === 0, detail: `${stats.sameNum} repeats touching` },
-    { label: 'terrain apart', ok: stats.sameTerrain === 0, detail: `${stats.sameTerrain} pairs touching` },
+    ruleCheck('same numbers', rules.rnum, stats.sameNum),
+    ruleCheck('same terrain', rules.rter, stats.sameTerrain),
+    ruleCheck('harbour + resource', rules.rharb, stats.harbSame),
+    desertCheck(rules.rdesert, stats),
     { label: `best corner ${stats.maxSpot} pips`, ok: stats.maxSpot <= 12, detail: 'pips on the strongest corner' },
   ]
   return (
@@ -489,19 +537,13 @@ export function CatanPanel({ initial = {} }) {
             {RULES.map((r) => (
               <span className="catan__rule" key={r.key} role="group" aria-label={r.label}>
                 <span className="catan__rulelabel">{r.label}</span>
-                {RULE_STATES.map((s) => (
+                {r.states.map((s) => (
                   <button
                     key={s}
                     type="button"
                     className="catan__opt catan__opt--sm"
                     aria-pressed={effectiveRules[r.key] === s}
-                    title={
-                      s === 'apart'
-                        ? 'never next to each other'
-                        : s === 'free'
-                          ? 'no rule'
-                          : 'at least one pair next to each other'
-                    }
+                    title={r.titles[s]}
                     onClick={() => setRules({ ...rules, [r.key]: s })}
                   >
                     {s}

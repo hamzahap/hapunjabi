@@ -1048,3 +1048,7 @@
   padding: 1px 7px;
   font-size: 0.72rem;
 }
+
+.catan__rule {
+  flex-wrap: wrap;
+}
