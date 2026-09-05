@@ -192,13 +192,10 @@ export const MODES = {
     label: 'Beginner',
     short: 'fair and readable',
     desc:
-      'Every rule of thumb, enforced: 6 and 8 never touch, no repeated number or terrain touches itself, pips are spread evenly across resources, the strongest corners are spaced around the island, and 2:1 harbours stay away from their own resource.',
+      'Every rule of thumb, enforced: 6 and 8 kept apart, 2 and 12 kept apart, no repeated number or terrain touches itself, pips are spread evenly across resources, the strongest corners are spaced around the island, and 2:1 harbours stay away from their own resource.',
     iterations: 4000,
-    strict: true,
     w: {
-      redAdj: 1000,
       sameNum: 60,
-      twoTwelve: 15,
       sameTerrain: 40,
       redSameRes: 40,
       goldRed: 400,
@@ -217,9 +214,7 @@ export const MODES = {
     desc:
       'The usual competitive setup: 6 and 8 never touch, resources balanced to within a few pips, same-terrain clusters capped at pairs, and a 2:1 harbour may touch its resource unless that hex carries a red number.',
     iterations: 3000,
-    strict: true,
     w: {
-      redAdj: 1000,
       sameNum: 20,
       sameTerrain: 6,
       cluster: 40,
@@ -238,10 +233,8 @@ export const MODES = {
     desc:
       'Deliberately lopsided. One resource is scarce, same-terrain clusters are allowed so the good land is contested, a 2:1 harbour may sit beside its own resource, and there is at least one dominant corner worth fighting over. 6 and 8 still never touch.',
     iterations: 3000,
-    strict: true,
     scarce: true,
     w: {
-      redAdj: 1000,
       clusterTarget: 0.3,
       clusterPen: 8,
       megacluster: 40,
@@ -256,16 +249,32 @@ export const MODES = {
     label: 'Chaos',
     short: 'straight shuffle',
     desc:
-      'Whatever the bag gives you. Adjacent 6 and 8, a 2 beside a 12, five forests in a row, a gold field on an 8. No rules, no rerolls.',
+      'Whatever the bag gives you. Adjacent 6 and 8, a 2 beside a 12, five forests in a row, a gold field on an 8. No rules, no rerolls, unless you pin one below.',
     iterations: 0,
-    strict: false,
     w: {},
   },
 }
 
+/**
+ * Adjacency rules that can be set independently of the mode. Each is
+ * 'apart' (never touch), 'free' (no opinion) or 'touch' (at least one pair
+ * must touch). Modes supply defaults; the panel lets players override them.
+ */
+export const RULE_STATES = ['apart', 'free', 'touch']
+export const RULE_DEFAULTS = {
+  beginner: { r68: 'apart', r212: 'apart' },
+  advanced: { r68: 'apart', r212: 'free' },
+  strategy: { r68: 'apart', r212: 'free' },
+  chaos: { r68: 'free', r212: 'free' },
+}
+const RULE_APART = 1000 // per offending pair
+const RULE_TOUCH = 600 // when no pair touches at all
+
+const isTwoTwelve = (x, y) => x != null && y != null && x + y === 14 && Math.abs(x - y) === 10
+
 // ---------- scoring ----------
 
-function evaluate(st, g, W, resWeight, scarce) {
+function evaluate(st, g, W, resWeight, scarce, rules) {
   const { nbr, verts, harbors, landIds, isLand, mainVerts, sector } = g
   const { terrain, number, harborTok } = st
   let s = 0
@@ -273,23 +282,23 @@ function evaluate(st, g, W, resWeight, scarce) {
   const resOf = (i) => TERRAIN[terrain[i]].resource
 
   let samePairs = 0
+  let redPairs = 0
+  let twoTwelvePairs = 0
   for (const a of landIds) {
     for (const b of nbr[a]) {
       if (b <= a || !isLand[b]) continue
       if (terrain[a] === terrain[b] && terrain[a] !== 'desert') samePairs++
-      if (W.redAdj && isRed(a) && isRed(b)) s += W.redAdj
+      if (isRed(a) && isRed(b)) redPairs++
+      if (isTwoTwelve(number[a], number[b])) twoTwelvePairs++
       if (W.sameNum && number[a] != null && number[a] === number[b]) s += W.sameNum
-      if (
-        W.twoTwelve &&
-        number[a] != null &&
-        number[b] != null &&
-        number[a] + number[b] === 14 &&
-        Math.abs(number[a] - number[b]) === 10
-      )
-        s += W.twoTwelve
       if (W.sameTerrain && terrain[a] === terrain[b] && terrain[a] !== 'desert') s += W.sameTerrain
     }
   }
+
+  if (rules.r68 === 'apart') s += RULE_APART * redPairs
+  else if (rules.r68 === 'touch' && redPairs === 0) s += RULE_TOUCH
+  if (rules.r212 === 'apart') s += RULE_APART * twoTwelvePairs
+  else if (rules.r212 === 'touch' && twoTwelvePairs === 0) s += RULE_TOUCH
 
   // Strategy mode wants some clustering, not a monoculture: aim for a set
   // number of same-terrain pairs and penalise straying either side of it.
@@ -380,11 +389,27 @@ function evaluate(st, g, W, resWeight, scarce) {
   return s
 }
 
-function countRedAdjacent(st, g) {
-  let n = 0
-  const red = (i) => st.number[i] === 6 || st.number[i] === 8
-  for (const a of g.landIds) for (const b of g.nbr[a]) if (b > a && g.isLand[b] && red(a) && red(b)) n++
-  return n
+function countPairs(st, g) {
+  let red = 0
+  let twoTwelve = 0
+  const isRed = (i) => st.number[i] === 6 || st.number[i] === 8
+  for (const a of g.landIds)
+    for (const b of g.nbr[a]) {
+      if (b <= a || !g.isLand[b]) continue
+      if (isRed(a) && isRed(b)) red++
+      if (isTwoTwelve(st.number[a], st.number[b])) twoTwelve++
+    }
+  return { red, twoTwelve }
+}
+
+/** True when the board honours every hard adjacency rule. */
+function rulesSatisfied(st, g, rules) {
+  const { red, twoTwelve } = countPairs(st, g)
+  if (rules.r68 === 'apart' && red > 0) return false
+  if (rules.r68 === 'touch' && red === 0) return false
+  if (rules.r212 === 'apart' && twoTwelve > 0) return false
+  if (rules.r212 === 'touch' && twoTwelve === 0) return false
+  return true
 }
 
 // ---------- state + moves ----------
@@ -464,10 +489,9 @@ function snapshot(st) {
   return { terrain: st.terrain.slice(), number: st.number.slice(), harborTok: st.harborTok.slice() }
 }
 
-function anneal(st, g, mode, resWeight, scarce, rng) {
+function anneal(st, g, mode, resWeight, scarce, rules, N, rng) {
   const W = mode.w
-  const N = mode.iterations
-  let cur = evaluate(st, g, W, resWeight, scarce)
+  let cur = evaluate(st, g, W, resWeight, scarce, rules)
   let best = cur
   let bestSnap = snapshot(st)
   const T0 = 30
@@ -475,7 +499,7 @@ function anneal(st, g, mode, resWeight, scarce, rng) {
   for (let it = 0; it < N; it++) {
     const T = T0 * Math.pow(T1 / T0, it / N)
     const revert = mutate(st, g, rng)
-    const next = evaluate(st, g, W, resWeight, scarce)
+    const next = evaluate(st, g, W, resWeight, scarce, rules)
     const delta = next - cur
     if (delta <= 0 || rng() < Math.exp(-delta / T)) {
       cur = next
@@ -504,18 +528,15 @@ function computeStats(st, g) {
     hexes[r]++
     pips[r] += PIPS[number[a]] || 0
   }
-  let redAdj = 0
   let sameNum = 0
   let sameTerrain = 0
   for (const a of landIds)
     for (const b of nbr[a]) {
       if (b <= a || !isLand[b]) continue
-      const ra = number[a] === 6 || number[a] === 8
-      const rb = number[b] === 6 || number[b] === 8
-      if (ra && rb) redAdj++
       if (number[a] != null && number[a] === number[b]) sameNum++
       if (terrain[a] === terrain[b] && terrain[a] !== 'desert') sameTerrain++
     }
+  const { red: redAdj, twoTwelve } = countPairs(st, g)
   const vp = verts.map((v) => {
     let p = 0
     for (const id of v.cells) if (isLand[id] && number[id] != null) p += PIPS[number[id]]
@@ -537,7 +558,16 @@ function computeStats(st, g) {
           resource: TERRAIN[terrain[id]].resource,
         })),
     }))
-  return { pips, hexes, redAdj, sameNum, sameTerrain, spots, maxSpot: spots.length ? spots[0].pips : 0 }
+  return {
+    pips,
+    hexes,
+    redAdj,
+    twoTwelve,
+    sameNum,
+    sameTerrain,
+    spots,
+    maxSpot: spots.length ? spots[0].pips : 0,
+  }
 }
 
 // ---------- entry point ----------
@@ -548,29 +578,41 @@ function computeStats(st, g) {
  * @param {keyof MODES} o.modeKey
  * @param {string} o.game   game id, used for resource weighting
  * @param {string} o.seed
+ * @param {{r68?: string, r212?: string}} [o.rules]  overrides for the mode's adjacency defaults
  */
-export function generateBoard({ layoutKey, modeKey, game, seed }) {
+export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides }) {
   const g = buildGeometry(layoutKey)
-  const mode = MODES[modeKey] || MODES.advanced
-  const rng = mulberry32(hashSeed(layoutKey + '|' + modeKey + '|' + game + '|' + seed))
+  const modeName = MODES[modeKey] ? modeKey : 'advanced'
+  const mode = MODES[modeName]
+  const rules = { ...RULE_DEFAULTS[modeName], ...(overrides || {}) }
+  const ruleKey = rules.r68 + ',' + rules.r212
+  const rng = mulberry32(hashSeed(layoutKey + '|' + modeName + '|' + game + '|' + ruleKey + '|' + seed))
   const resWeight = RESOURCE_WEIGHTS[game] || {}
   const scarce = mode.scarce ? pick(RESOURCES, rng) : null
+
+  // Chaos has no scoring of its own, but a forced or forbidden adjacency
+  // still needs a short search to satisfy it.
+  const hasHardRule = rules.r68 !== 'free' || rules.r212 !== 'free'
+  const iterations = mode.iterations || (hasHardRule ? 1500 : 0)
 
   let result = null
   let attempts = 0
   do {
     const st = initialState(g, rng)
-    result = mode.iterations ? anneal(st, g, mode, resWeight, scarce, rng) : { state: st, score: 0 }
+    result = iterations
+      ? anneal(st, g, mode, resWeight, scarce, rules, iterations, rng)
+      : { state: st, score: 0 }
     attempts++
-  } while (mode.strict && countRedAdjacent(result.state, g) > 0 && attempts < 8)
+  } while (hasHardRule && !rulesSatisfied(result.state, g, rules) && attempts < 8)
 
   const st = result.state
   const stats = computeStats(st, g)
   return {
     geometry: g,
     layoutKey,
-    modeKey,
+    modeKey: modeName,
     seed,
+    rules,
     scarce,
     score: result.score,
     attempts,

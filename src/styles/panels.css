@@ -1029,3 +1029,22 @@
     min-width: 100%;
   }
 }
+
+.catan__rule {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: var(--sp-3);
+}
+
+.catan__rulelabel {
+  color: var(--fg-dim);
+  font-size: 0.78rem;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.catan__opt--sm {
+  padding: 1px 7px;
+  font-size: 0.72rem;
+}

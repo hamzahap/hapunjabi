@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Panel } from './Panel.jsx'
-import { generateBoard, MODES, randomSeed } from '../catan/generator.js'
+import { generateBoard, MODES, RULE_DEFAULTS, RULE_STATES, randomSeed } from '../catan/generator.js'
 import { GAMES, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
 
 const R = 40 // hex radius in SVG units
@@ -36,22 +36,47 @@ const MODE_ALIASES = {
 }
 const PLAYER_ALIASES = { 3: 4, 4: 4, '3-4': 4, 34: 4, 5: 6, 6: 6, '5-6': 6, 56: 6 }
 
+/** `68-touch`, `212-apart`, … override the mode's adjacency defaults. */
+const RULES = [
+  { key: 'r68', token: '68', label: '6 & 8' },
+  { key: 'r212', token: '212', label: '2 & 12' },
+]
+const RULE_TOKENS = RULES.flatMap((r) => RULE_STATES.map((s) => `${r.token}-${s}`))
+
 export const CATAN_TOKENS = Array.from(
-  new Set([...Object.keys(GAME_ALIASES), ...Object.keys(MODE_ALIASES), '4', '6', '3-4', '5-6'])
+  new Set([
+    ...Object.keys(GAME_ALIASES),
+    ...Object.keys(MODE_ALIASES),
+    ...RULE_TOKENS,
+    '4',
+    '6',
+    '3-4',
+    '5-6',
+  ])
 ).sort()
 
-/** `catan seafarers 6 strategy k3x9pq` in any order; the first unknown token is the seed. */
+/** `catan seafarers 6 strategy 68-touch k3x9pq` in any order; the first unknown token is the seed. */
 export function parseCatanArgs(args = []) {
-  const out = { game: 'base', players: 4, mode: 'advanced', seed: null }
+  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {} }
   for (const raw of args) {
     const t = raw.toLowerCase().replace(/^--/, '')
+    const rule = RULES.find((r) => t.startsWith(r.token + '-'))
     if (GAME_ALIASES[t]) out.game = GAME_ALIASES[t]
     else if (MODE_ALIASES[t]) out.mode = MODE_ALIASES[t]
     else if (PLAYER_ALIASES[t]) out.players = PLAYER_ALIASES[t]
+    else if (rule && RULE_STATES.includes(t.slice(rule.token.length + 1)))
+      out.rules[rule.key] = t.slice(rule.token.length + 1)
     else if (!out.seed && /^[\w.-]{1,24}$/.test(t)) out.seed = t
   }
   if (out.game === 'explorers') out.game = 'base'
   return out
+}
+
+/** Only the overrides that differ from the mode's defaults, as command tokens. */
+function ruleTokens(mode, rules) {
+  return RULES.filter((r) => rules[r.key] && rules[r.key] !== RULE_DEFAULTS[mode][r.key]).map(
+    (r) => `${r.token}-${rules[r.key]}`
+  )
 }
 
 function layoutKeyFor(game, players) {
@@ -374,9 +399,16 @@ function Spots({ stats }) {
   )
 }
 
-function Checks({ stats }) {
+function ruleCheck(label, rule, count) {
+  if (rule === 'touch') return { label: `${label} touching`, ok: count > 0, detail: `${count} pairs touching` }
+  if (rule === 'free') return { label: `${label} ${count ? 'touching' : 'apart'}`, ok: true, detail: 'no rule set' }
+  return { label: `${label} apart`, ok: count === 0, detail: `${count} touching` }
+}
+
+function Checks({ stats, rules }) {
   const items = [
-    { label: '6 and 8 apart', ok: stats.redAdj === 0, detail: `${stats.redAdj} touching` },
+    ruleCheck('6 and 8', rules.r68, stats.redAdj),
+    ruleCheck('2 and 12', rules.r212, stats.twoTwelve),
     { label: 'numbers apart', ok: stats.sameNum === 0, detail: `${stats.sameNum} repeats touching` },
     { label: 'terrain apart', ok: stats.sameTerrain === 0, detail: `${stats.sameTerrain} pairs touching` },
     { label: `best corner ${stats.maxSpot} pips`, ok: stats.maxSpot <= 12, detail: 'pips on the strongest corner' },
@@ -395,7 +427,13 @@ function Checks({ stats }) {
 export function CatanPanel({ initial = {} }) {
   const [game, setGame] = useState(initial.game || 'base')
   const [players, setPlayers] = useState(initial.players || 4)
-  const [mode, setMode] = useState(initial.mode || 'advanced')
+  const [mode, setModeState] = useState(initial.mode || 'advanced')
+  const [rules, setRules] = useState(initial.rules || {})
+  // Switching mode drops any pinned rules back to that mode's defaults.
+  const setMode = (m) => {
+    setModeState(m)
+    setRules({})
+  }
   const [seed, setSeed] = useState(() => initial.seed || randomSeed())
   const [seedInput, setSeedInput] = useState(initial.seed || '')
   const [showSpots, setShowSpots] = useState(false)
@@ -405,11 +443,12 @@ export function CatanPanel({ initial = {} }) {
 
   const layoutKey = layoutKeyFor(game, players)
   const board = useMemo(
-    () => generateBoard({ layoutKey, modeKey: mode, game, seed }),
-    [layoutKey, mode, game, seed]
+    () => generateBoard({ layoutKey, modeKey: mode, game, seed, rules }),
+    [layoutKey, mode, game, seed, rules]
   )
 
-  const link = `${window.location.origin}${window.location.pathname}#catan/${game}/${players}/${mode}/${seed}`
+  const parts = [game, players, mode, ...ruleTokens(mode, rules), seed]
+  const link = `${window.location.origin}${window.location.pathname}#catan/${parts.join('/')}`
 
   const copyLink = useCallback(async () => {
     try {
@@ -430,7 +469,8 @@ export function CatanPanel({ initial = {} }) {
   const explorers = GAMES.find((g) => g.id === 'explorers')
   const modeInfo = MODES[mode]
   const seafarers = game === 'seafarers'
-  const cmd = `catan ${game} ${players} ${mode} ${seed}`
+  const cmd = `catan ${parts.join(' ')}`
+  const effectiveRules = board.rules
 
   return (
     <Panel title="CATAN" sub="board generator · seeded, shareable">
@@ -444,6 +484,32 @@ export function CatanPanel({ initial = {} }) {
             value={mode}
             onChange={setMode}
           />
+          <div className="catan__row" role="group" aria-label="rules">
+            <span className="catan__rowlabel">rules</span>
+            {RULES.map((r) => (
+              <span className="catan__rule" key={r.key} role="group" aria-label={r.label}>
+                <span className="catan__rulelabel">{r.label}</span>
+                {RULE_STATES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="catan__opt catan__opt--sm"
+                    aria-pressed={effectiveRules[r.key] === s}
+                    title={
+                      s === 'apart'
+                        ? 'never next to each other'
+                        : s === 'free'
+                          ? 'no rule'
+                          : 'at least one pair next to each other'
+                    }
+                    onClick={() => setRules({ ...rules, [r.key]: s })}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </span>
+            ))}
+          </div>
           <div className="catan__row">
             <label className="catan__rowlabel" htmlFor="catan-seed">
               seed
@@ -489,7 +555,7 @@ export function CatanPanel({ initial = {} }) {
           {board.attempts > 1 && ` · ${board.attempts} passes`}
         </div>
 
-        <Checks stats={board.stats} />
+        <Checks stats={board.stats} rules={effectiveRules} />
 
         <div className="catan__stats">
           <PipRows stats={board.stats} seafarers={seafarers} scarce={board.scarce} />
