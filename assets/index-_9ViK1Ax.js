@@ -85,11 +85,7 @@ Without arguments, lists available writeups. With a topic, renders it. These are
 
 A whiteboard diagram of how a scoreline gets from a provider to a phone, and where the checks sit relative to the cache. The placement is the whole point.`,arcade:`arcade — play something.
 
-Links to the shipped mobile games, plus the rock shooter that has been on this site since 2023 for no defensible reason.`,catan:`catan — generate a Catan board.
-
-Base game, Seafarers (Heading for New Shores), Cities & Knights and Traders & Barbarians, for 3–4 or 5–6 players. Four modes: beginner enforces every fairness rule, advanced is the tournament default, strategy makes one resource scarce and lets the good land cluster, chaos is a straight shuffle.
-
-Boards are seeded. \`catan seafarers 6 strategy k3x9pq\` gives everyone at the table the same map, and the copy-link button gives you a URL that opens it.`,theme:`theme — change the palette.
+Links to the shipped mobile games, plus the rock shooter that has been on this site since 2023 for no defensible reason.`,catan:"catan — generate a Catan board.\n\nBase game, Seafarers (Heading for New Shores), Cities & Knights and Traders & Barbarians, for 3–4 or 5–6 players. Four modes: beginner enforces every fairness rule, advanced is the tournament default, strategy makes one resource scarce and lets the good land cluster, chaos is a straight shuffle. Pin the 6/8 and 2/12 adjacency rules on top of any mode with `68-apart`, `68-free`, `68-touch`, `212-apart`, `212-free` or `212-touch`.\n\nBoards are seeded. `catan seafarers 6 strategy k3x9pq` gives everyone at the table the same map, and the copy-link button gives you a URL that opens it.",theme:`theme — change the palette.
 
 matrix (default), amber, ice, or paper. Paper is a light high-contrast theme for people who would rather not read green on black. Your choice is remembered.`,kill:`kill — send a signal to a process.
 
