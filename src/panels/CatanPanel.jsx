@@ -608,7 +608,9 @@ export function CatanPanel({ initial = {} }) {
           <span className="accent">{modeInfo.label}.</span> {modeInfo.desc}
         </p>
         <p className="catan__note faint">
-          <span className="dim">{gameInfo.label}.</span> {gameInfo.note} {explorers.note}
+          <span className="dim">{gameInfo.label}.</span> {gameInfo.note}{' '}
+          {board.geometry.layout.frameNote && `${board.geometry.layout.frameNote} `}
+          {explorers.note}
         </p>
         <p className="catan__note faint">
           <span className="accent">{cmd}</span> brings this exact board back. The link does the same.

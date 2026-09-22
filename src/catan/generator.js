@@ -134,7 +134,7 @@ export function buildGeometry(layoutKey) {
     return out
   })
 
-  const harbors = layout.harbors.map(([r, c, edge]) => {
+  const harbors = layout.harbors.map(([r, c, edge, type]) => {
     const id = byRC.get(r + ',' + c)
     const i = EDGES.indexOf(edge)
     const cell = cells[id]
@@ -147,8 +147,11 @@ export function buildGeometry(layoutKey) {
       x: cell.x + Math.cos(ang) * 1.5,
       y: cell.y + Math.sin(ang) * 1.5,
       angle: ang,
+      fixed: type ? (type === 'any' ? { ratio: 3, resource: null } : { ratio: 2, resource: type }) : null,
     }
   })
+  // Printed-frame boards: every harbour type is fixed, so only the hexes move.
+  const fixedHarbors = harbors.length > 0 && harbors.every((h) => h.fixed)
 
   const isLand = cells.map((c) => c.kind === 'I' || c.kind === 'L')
   const mainIds = cells.filter((c) => c.kind === 'I').map((c) => c.id)
@@ -174,6 +177,7 @@ export function buildGeometry(layoutKey) {
     verts,
     cellVerts,
     harbors,
+    fixedHarbors,
     isLand,
     mainIds,
     isleIds,
@@ -455,6 +459,7 @@ function initialState(g, rng) {
   }
   place(mainIds, layout.main)
   if (layout.isle) place(isleIds, layout.isle)
+  if (g.fixedHarbors) return { terrain, number, harborTok: harbors.map((h) => h.fixed) }
   const tokens = []
   for (const [res, n] of Object.entries(layout.main.harbors))
     for (let i = 0; i < n; i++)
@@ -474,7 +479,7 @@ function mutate(st, g, rng) {
   const roll = rng()
   const { terrain, number, harborTok } = st
 
-  if (roll < 0.15 && harborTok.length > 1) {
+  if (roll < 0.15 && harborTok.length > 1 && !g.fixedHarbors) {
     const a = Math.floor(rng() * harborTok.length)
     let b = Math.floor(rng() * harborTok.length)
     if (a === b) b = (b + 1) % harborTok.length

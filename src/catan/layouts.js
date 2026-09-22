@@ -9,10 +9,20 @@
  *   'L'  small-island land slot (Seafarers; the island shapes are fixed by the
  *        scenario, only terrain and numbers shuffle)
  *
- * Harbours are [row, col, edge] on the hex they belong to. The base-game
- * positions were checked against the frame in the official Seafarers
- * "Heading for New Shores" diagrams, which draw the standard island with its
- * harbours in place; the 5-6 positions come from the 5-6 Seafarers rulebook.
+ * Harbours are [row, col, edge, type] on the hex they belong to, listed
+ * clockwise from the top-left corner. A type ('any' or a resource) means the
+ * harbour is printed on the frame and never moves; a missing type means the
+ * scenario places shuffled harbour tokens there (Seafarers flips the frame to
+ * its all-sea side).
+ *
+ * The base-game frame was read off the physical pieces. The six long pieces
+ * are numbered 1-6 and join clockwise as 1 → 6 → 5 → 4 → 3 → 2 → 1; the two
+ * ends of each joint carry the same number ("the 5-5 joint"). Each long piece
+ * covers five coast edges: two-harbour pieces have harbours on their first and
+ * fourth edges, single-harbour pieces on the middle edge. The 5-6 extension's
+ * four small pieces each cover the two outer edges of one corner hex, with the
+ * harbour on the second edge, and the rulebook places them at the 2-2 (sea),
+ * 3-3 (2:1 wool), 5-5 (3:1) and 6-6 (sea) joints.
  */
 
 export const TERRAIN = {
@@ -51,19 +61,41 @@ const BASE_56 = {
   harbors: { any: 5, wood: 1, brick: 1, sheep: 2, wheat: 1, ore: 1 },
 }
 
-const HARBORS_34 = [
-  [0, 2, 'NW'],
-  [0, 3, 'NE'],
-  [1, 4, 'NE'],
-  [2, 5, 'E'],
-  [3, 4, 'SE'],
-  [4, 3, 'SE'],
-  [4, 2, 'SW'],
-  [3, 1, 'W'],
-  [1, 1, 'W'],
+// Printed frame, 3-4 players. Piece 3 (3:1, wheat) along the top, then 2 (ore),
+// 1 (3:1, wool), 6 (3:1), 5 (3:1, brick), 4 (wood).
+const FRAME_34 = [
+  [0, 2, 'NW', 'any'],
+  [0, 3, 'NE', 'wheat'],
+  [1, 4, 'NE', 'ore'],
+  [2, 5, 'E', 'any'],
+  [3, 4, 'SE', 'sheep'],
+  [4, 3, 'SE', 'any'],
+  [4, 2, 'SW', 'any'],
+  [3, 1, 'W', 'brick'],
+  [1, 1, 'W', 'wood'],
 ]
 
-const HARBORS_56 = [
+// Printed frame, 5-6 players: the same six long pieces in the same order, with
+// the small pieces inserted at the top-right (3-3, wool), right (2-2, sea),
+// bottom-left (6-6, sea) and left (5-5, 3:1) corners.
+const FRAME_56 = [
+  [0, 3, 'NW', 'any'],
+  [0, 4, 'NE', 'wheat'],
+  [0, 5, 'E', 'sheep'],
+  [2, 6, 'NE', 'ore'],
+  [4, 6, 'E', 'any'],
+  [5, 5, 'SE', 'sheep'],
+  [6, 4, 'SE', 'any'],
+  [5, 2, 'SW', 'any'],
+  [4, 2, 'W', 'brick'],
+  [3, 1, 'NW', 'any'],
+  [1, 2, 'W', 'wood'],
+]
+
+// Seafarers uses the all-sea side of the frame and shuffled harbour tokens at
+// the positions in the scenario diagram.
+const SEA_HARBORS_34 = FRAME_34.map(([r, c, e]) => [r, c, e])
+const SEA_HARBORS_56 = [
   [0, 3, 'NW'],
   [0, 4, 'NE'],
   [1, 5, 'NE'],
@@ -81,18 +113,21 @@ export const LAYOUTS = {
   base4: {
     title: '3–4 players · 19 hexes',
     rows: ['..III', '.IIII', '.IIIII', '.IIII', '..III'],
-    harbors: HARBORS_34,
+    harbors: FRAME_34,
     main: BASE_34,
     isle: null,
     pirate: null,
+    frameNote: 'Harbours are the ones printed on the frame, pieces joined 1 → 6 → 5 → 4 → 3 → 2.',
   },
   base6: {
     title: '5–6 players · 30 hexes',
     rows: ['...III', '..IIII', '..IIIII', '.IIIIII', '..IIIII', '..IIII', '...III'],
-    harbors: HARBORS_56,
+    harbors: FRAME_56,
     main: BASE_56,
     isle: null,
     pirate: null,
+    frameNote:
+      'Harbours are the ones printed on the frame. Long pieces joined 1 → 6 → 5 → 4 → 3 → 2, small pieces at the 3-3 joint (2:1 wool), 2-2 (sea), 6-6 (sea) and 5-5 (3:1).',
   },
   // Seafarers scenario 1, "Heading for New Shores". Main island is the standard
   // island; the small islands keep their printed shapes and shuffle terrain +
@@ -100,7 +135,7 @@ export const LAYOUTS = {
   sea4: {
     title: 'Seafarers · Heading for New Shores · 3–4 players',
     rows: ['..IIISL', '.IIIISS', '.IIIIISL', 'SIIIISLS', '.SIIISSS', '.SSSSSL', '..LLSLL'],
-    harbors: HARBORS_34,
+    harbors: SEA_HARBORS_34,
     main: BASE_34,
     isle: {
       terrain: { gold: 2, fields: 1, hills: 1, mountains: 2, pasture: 1, forest: 1 },
@@ -111,7 +146,7 @@ export const LAYOUTS = {
   sea6: {
     title: 'Seafarers · Heading for New Shores · 5–6 players',
     rows: ['.LSIIISL', 'SSIIIISL', 'LSIIIIISL', 'SIIIIIIS', 'LSIIIIISL', 'SSIIIISL', '.LSIIISL'],
-    harbors: HARBORS_56,
+    harbors: SEA_HARBORS_56,
     main: BASE_56,
     isle: {
       terrain: { gold: 3, fields: 1, hills: 2, mountains: 2, pasture: 1, forest: 1 },
@@ -133,7 +168,7 @@ export const GAMES = [
     label: 'Seafarers',
     board: 'sea',
     note:
-      'Scenario 1, Heading for New Shores. The small islands keep their printed shapes; their terrain and numbers shuffle, as the rulebook allows. Gold fields produce a resource of your choice, so they never get a 6 or 8 outside chaos mode.',
+      'Scenario 1, Heading for New Shores. The frame is flipped to its all-sea side and the harbour tokens from the Seafarers box are shuffled onto the marked edges. The small islands keep their printed shapes; their terrain and numbers shuffle, as the rulebook allows. Gold fields produce a resource of your choice, so they never get a 6 or 8 outside chaos mode.',
   },
   {
     id: 'cities',
