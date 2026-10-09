@@ -5,11 +5,13 @@
  * Everything is driven by a seeded PRNG so a seed string reproduces a board
  * exactly, which is what makes the share links work.
  */
-import { LAYOUTS, TERRAIN, RESOURCES, RESOURCE_WEIGHTS } from './layouts.js'
+import { getLayout, TERRAIN, RESOURCES, RESOURCE_WEIGHTS } from './layouts.js'
 
 const SQRT3 = Math.sqrt(3)
 
 export const PIPS = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 }
+
+const isLandTerrain = (t) => t != null && t !== 'sea' && t !== 'fog'
 
 // ---------- PRNG ----------
 
@@ -69,6 +71,20 @@ function swap(arr, a, b) {
   arr[b] = t
 }
 
+function pick(arr, rng) {
+  return arr[Math.floor(rng() * arr.length)]
+}
+
+/** Remove one occurrence of each item in `taken` from `pool` (multiset difference). */
+function subtract(pool, taken) {
+  const left = pool.slice()
+  for (const t of taken) {
+    const i = left.indexOf(t)
+    if (i >= 0) left.splice(i, 1)
+  }
+  return left
+}
+
 // ---------- geometry ----------
 
 /** Edge i joins vertex i and i+1; vertex i sits at angle -90 + 60i degrees. */
@@ -94,9 +110,29 @@ function neighborOf(r, c, edge) {
   }
 }
 
-/** Static structure for a layout: cells, adjacency, shared vertices, harbour slots. */
-export function buildGeometry(layoutKey) {
-  const layout = LAYOUTS[layoutKey]
+function makeHarbor(cells, cellVerts, id, i, type) {
+  const cell = cells[id]
+  const ang = ((-60 + 60 * i) * Math.PI) / 180
+  return {
+    cell: id,
+    edge: EDGES[i],
+    va: cellVerts[id][i],
+    vb: cellVerts[id][(i + 1) % 6],
+    x: cell.x + Math.cos(ang) * 1.5,
+    y: cell.y + Math.sin(ang) * 1.5,
+    angle: ang,
+    fixed: type ? (type === 'any' ? { ratio: 3, resource: null } : { ratio: 2, resource: type }) : null,
+  }
+}
+
+/**
+ * Static structure for a layout: cells, adjacency, shared vertices, harbour
+ * slots, and which cells the search may move. `setup` is 'variable' or
+ * 'printed'; printed pins every cell the rulebook diagram fixes.
+ */
+export function buildGeometry(layoutKey, setup = 'variable') {
+  const layout = getLayout(layoutKey)
+  if (!layout) throw new Error(`unknown board ${layoutKey}`)
   const cells = []
   const byRC = new Map()
   layout.rows.forEach((row, r) => {
@@ -134,58 +170,91 @@ export function buildGeometry(layoutKey) {
     return out
   })
 
-  const harbors = layout.harbors.map(([r, c, edge, type]) => {
-    const id = byRC.get(r + ',' + c)
-    const i = EDGES.indexOf(edge)
-    const cell = cells[id]
-    const ang = ((-60 + 60 * i) * Math.PI) / 180
-    return {
-      cell: id,
-      edge,
-      va: cellVerts[id][i],
-      vb: cellVerts[id][(i + 1) % 6],
-      x: cell.x + Math.cos(ang) * 1.5,
-      y: cell.y + Math.sin(ang) * 1.5,
-      angle: ang,
-      fixed: type ? (type === 'any' ? { ratio: 3, resource: null } : { ratio: 2, resource: type }) : null,
-    }
-  })
+  const harbors = (layout.harbors || []).map(([r, c, edge, type]) =>
+    makeHarbor(cells, cellVerts, byRC.get(r + ',' + c), EDGES.indexOf(edge), type)
+  )
   // Printed-frame boards: every harbour type is fixed, so only the hexes move.
   const fixedHarbors = harbors.length > 0 && harbors.every((h) => h.fixed)
 
-  const isLand = cells.map((c) => c.kind === 'I' || c.kind === 'L')
-  const mainIds = cells.filter((c) => c.kind === 'I').map((c) => c.id)
-  const isleIds = cells.filter((c) => c.kind === 'L').map((c) => c.id)
-  const landIds = mainIds.concat(isleIds)
+  // Cells the rulebook pins: fixed land (X/N/D), villages (V), plus, in the
+  // printed set-up, every pool cell the diagram gives a terrain for.
+  const fixedMap = layout.fixed || {}
+  const printedMap = setup === 'printed' ? layout.printed || {} : {}
+  const pinned = new Map() // id -> [terrain, number | number[] | null]
+  for (const cell of cells) {
+    const key = cell.r + ',' + cell.c
+    if (fixedMap[key]) pinned.set(cell.id, fixedMap[key])
+    else if (printedMap[key] && (cell.kind === 'I' || cell.kind === 'L')) pinned.set(cell.id, printedMap[key])
+  }
 
-  // Vertices that touch the main island are where opening settlements go.
-  const cx = mainIds.reduce((s, id) => s + cells[id].x, 0) / mainIds.length
-  const cy = mainIds.reduce((s, id) => s + cells[id].y, 0) / mainIds.length
+  const mainIds = cells.filter((c) => c.kind === 'I' && !pinned.has(c.id)).map((c) => c.id)
+  const isleIds = cells.filter((c) => c.kind === 'L' && !pinned.has(c.id)).map((c) => c.id)
+  const villageIds = cells.filter((c) => c.kind === 'V').map((c) => c.id)
+  // Land that counts for adjacency rules and pips: pools plus pinned land,
+  // minus villages (no settlements there) and fog.
+  const landIds = cells
+    .filter((c) => c.kind !== 'S' && c.kind !== 'F' && c.kind !== 'V')
+    .map((c) => c.id)
+
+  // What the pools have left once pinned cells have taken their share.
+  const pools = {}
+  for (const [name, ids, poolCells] of [
+    ['main', mainIds, cells.filter((c) => c.kind === 'I')],
+    ['isle', isleIds, cells.filter((c) => c.kind === 'L')],
+  ]) {
+    const spec = layout[name]
+    if (!spec || !poolCells.length) continue
+    const taken = poolCells.filter((c) => pinned.has(c.id)).map((c) => pinned.get(c.id))
+    pools[name] = {
+      ids,
+      terrain: subtract(expand(spec.terrain), taken.map((t) => t[0])),
+      numbers: subtract(spec.numbers, taken.map((t) => t[1]).filter((n) => n != null)),
+    }
+  }
+
+  // Vertices that touch the main pool are where opening settlements go. On a
+  // fully fixed board (or one where everything shuffles) use all land.
+  const anchor = mainIds.length ? new Set(mainIds) : new Set(landIds)
+  const anchorCells = [...anchor]
+  const cx = anchorCells.reduce((s, id) => s + cells[id].x, 0) / anchorCells.length
+  const cy = anchorCells.reduce((s, id) => s + cells[id].y, 0) / anchorCells.length
   const mainVerts = []
   const sector = verts.map((v, idx) => {
-    if (v.cells.some((id) => cells[id].kind === 'I')) mainVerts.push(idx)
+    if (v.cells.some((id) => anchor.has(id))) mainVerts.push(idx)
     const a = Math.atan2(v.y - cy, v.x - cx)
     return Math.floor(((a + Math.PI) / (2 * Math.PI)) * 6) % 6
   })
 
   const pirate = layout.pirate ? byRC.get(layout.pirate.join(',')) : null
+  const robber = layout.robber ? byRC.get(layout.robber.join(',')) : null
+  const idsOf = (list) => (list || []).map((k) => byRC.get(k)).filter((id) => id != null)
 
   return {
     layout,
+    setup,
     cells,
     nbr,
     verts,
     cellVerts,
+    byRC,
     harbors,
     fixedHarbors,
-    isLand,
+    pinned,
+    pools,
     mainIds,
     isleIds,
+    villageIds,
     landIds,
     mainVerts,
     sector,
     pirate,
-    topK: mainIds.length > 19 ? 12 : 8,
+    robber,
+    nored: idsOf(layout.nored),
+    lowside: idsOf(layout.lowside),
+    noLowOn: layout.scenario && layout.scenario.id === 'islands' ? ['forest', 'pasture'] : [],
+    dynamicHarbors: !!layout.dynamicHarbors,
+    tokens: layout.tokens,
+    topK: landIds.length > 25 ? 12 : 8,
   }
 }
 
@@ -275,9 +344,11 @@ const isTwoTwelve = (x, y) => x != null && y != null && x + y === 14 && Math.abs
 
 /** Everything the rules and the stats panel care about, counted once. */
 function measure(st, g) {
-  const { nbr, verts, harbors, landIds, isLand } = g
-  const { terrain, number, harborTok } = st
+  const { nbr, verts, landIds } = g
+  const { terrain, number, harborTok, harbors } = st
+  const isLand = terrain.map(isLandTerrain)
   const isRed = (i) => number[i] === 6 || number[i] === 8
+  const movable = new Set(g.mainIds.concat(g.isleIds))
   const m = {
     red: 0,
     twoTwelve: 0,
@@ -287,9 +358,12 @@ function measure(st, g) {
     harbSameRed: 0,
     deserts: 0,
     desertCoast: 0,
+    scenarioBad: 0,
+    isLand,
   }
   for (const a of landIds) {
-    if (terrain[a] === 'desert') {
+    if (!isLand[a]) continue
+    if (terrain[a] === 'desert' && movable.has(a)) {
       m.deserts++
       if (nbr[a].length < 6 || nbr[a].some((b) => !isLand[b])) m.desertCoast++
     }
@@ -301,9 +375,16 @@ function measure(st, g) {
       if (terrain[a] === terrain[b] && terrain[a] !== 'desert') m.sameTerrain++
     }
   }
+  // Scenario constraints are variable-setup advice, so they only bind cells
+  // the search is allowed to move; the printed diagram is exempt.
+  for (const a of g.nored) if (movable.has(a) && isRed(a)) m.scenarioBad++
+  for (const a of g.lowside) if (movable.has(a) && [5, 6, 8, 9].includes(number[a])) m.scenarioBad++
+  if (g.noLowOn.length)
+    for (const a of movable)
+      if (g.noLowOn.includes(terrain[a]) && [2, 3, 11, 12].includes(number[a])) m.scenarioBad++
   for (let k = 0; k < harbors.length; k++) {
     const tok = harborTok[k]
-    if (tok.ratio !== 2) continue
+    if (!tok || tok.ratio !== 2) continue
     const h = harbors[k]
     let same = false
     let sameRed = false
@@ -327,13 +408,14 @@ function rulePenalty(rule, count) {
 // ---------- scoring ----------
 
 function evaluate(st, g, W, resWeight, scarce, rules) {
-  const { nbr, verts, landIds, isLand, mainVerts, sector } = g
+  const { nbr, verts, landIds, mainVerts, sector } = g
   const { terrain, number } = st
   let s = 0
   const isRed = (i) => number[i] === 6 || number[i] === 8
   const resOf = (i) => TERRAIN[terrain[i]].resource
 
   const m = measure(st, g)
+  const isLand = m.isLand
   const samePairs = m.sameTerrain
   s += rulePenalty(rules.r68, m.red)
   s += rulePenalty(rules.r212, m.twoTwelve)
@@ -342,6 +424,7 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
   s += rulePenalty(rules.rharb, m.harbSame)
   if (rules.rdesert === 'inland') s += RULE_APART * m.desertCoast
   else if (rules.rdesert === 'coast') s += RULE_APART * (m.deserts - m.desertCoast)
+  s += RULE_APART * m.scenarioBad
 
   // The mode's own opinions on harbours and terrain only apply while the
   // matching rule is left free; a pinned rule replaces them.
@@ -358,7 +441,7 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
 
   if ((W.cluster || W.megacluster) && rules.rter !== 'apart') {
     for (const a of landIds) {
-      if (terrain[a] === 'desert') continue
+      if (!isLand[a] || terrain[a] === 'desert') continue
       let k = 0
       for (const b of nbr[a]) if (isLand[b] && terrain[b] === terrain[a]) k++
       if (W.cluster && k >= 2) s += W.cluster * (k - 1)
@@ -389,11 +472,12 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
     const weightOf = (r) => (count[r] || 0) * (resWeight[r] || 1) * (scarce === r ? 0.5 : 1)
     let wsum = 0
     for (const r of RESOURCES) wsum += weightOf(r)
-    for (const r of RESOURCES) {
-      const target = (totalP * weightOf(r)) / wsum
-      const dev = Math.abs((pips[r] || 0) - target)
-      s += W.pip * Math.max(0, dev - 1)
-    }
+    if (wsum > 0)
+      for (const r of RESOURCES) {
+        const target = (totalP * weightOf(r)) / wsum
+        const dev = Math.abs((pips[r] || 0) - target)
+        s += W.pip * Math.max(0, dev - 1)
+      }
   }
 
   const vp = verts.map((v) => {
@@ -407,7 +491,7 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
 
   if (W.maxSpot || W.hotspot || W.spread || W.concentrate) {
     const sorted = mainVerts.slice().sort((a, b) => vp[b] - vp[a])
-    const strongest = vp[sorted[0]]
+    const strongest = vp[sorted[0]] || 0
     if (W.maxSpot) s += W.maxSpot * Math.max(0, strongest - W.maxSpotCap)
     if (W.hotspot) s += W.hotspot * Math.max(0, W.hotspotMin - strongest)
     if (W.spread || W.concentrate) {
@@ -419,17 +503,18 @@ function evaluate(st, g, W, resWeight, scarce, rules) {
   }
 
   if (W.harborStrong)
-    for (const h of g.harbors)
+    for (const h of st.harbors)
       s += W.harborStrong * Math.max(0, Math.max(vp[h.va], vp[h.vb]) - W.harborStrongCap)
 
   return s
 }
 
-/** True when the board honours every pinned rule. */
+/** True when the board honours every pinned rule and scenario constraint. */
 function rulesSatisfied(st, g, rules) {
   const m = measure(st, g)
   const pair = (rule, count) => (rule === 'apart' ? count === 0 : rule === 'touch' ? count > 0 : true)
   return (
+    m.scenarioBad === 0 &&
     pair(rules.r68, m.red) &&
     pair(rules.r212, m.twoTwelve) &&
     pair(rules.rnum, m.sameNum) &&
@@ -442,39 +527,47 @@ function rulesSatisfied(st, g, rules) {
 
 // ---------- state + moves ----------
 
+function harborTokens(g, rng, count) {
+  const tokens = []
+  for (const [res, n] of Object.entries(g.tokens || {}))
+    for (let i = 0; i < n; i++)
+      tokens.push(res === 'any' ? { ratio: 3, resource: null } : { ratio: 2, resource: res })
+  return shuffle(tokens, rng).slice(0, count)
+}
+
 function initialState(g, rng) {
-  const { layout, cells, mainIds, isleIds, harbors } = g
-  const terrain = cells.map((c) => (c.kind === 'S' ? 'sea' : null))
+  const { cells } = g
+  const terrain = cells.map((c) => (c.kind === 'S' ? 'sea' : c.kind === 'F' ? 'fog' : null))
   const number = cells.map(() => null)
-  const place = (ids, spec) => {
-    const ters = shuffle(expand(spec.terrain), rng)
-    ids.forEach((id, i) => {
+  const village = cells.map(() => null)
+  for (const [id, [t, n]] of g.pinned) {
+    terrain[id] = t
+    if (Array.isArray(n)) village[id] = n
+    else number[id] = n == null ? null : n
+  }
+  for (const pool of Object.values(g.pools)) {
+    const ters = shuffle(pool.terrain, rng)
+    pool.ids.forEach((id, i) => {
       terrain[id] = ters[i]
     })
-    const numbered = ids.filter((id) => terrain[id] !== 'desert')
-    const nums = shuffle(spec.numbers, rng)
+    const numbered = pool.ids.filter((id) => isLandTerrain(terrain[id]) && terrain[id] !== 'desert')
+    const nums = shuffle(pool.numbers, rng)
     numbered.forEach((id, i) => {
       number[id] = nums[i]
     })
   }
-  place(mainIds, layout.main)
-  if (layout.isle) place(isleIds, layout.isle)
-  if (g.fixedHarbors) return { terrain, number, harborTok: harbors.map((h) => h.fixed) }
-  const tokens = []
-  for (const [res, n] of Object.entries(layout.main.harbors))
-    for (let i = 0; i < n; i++)
-      tokens.push(res === 'any' ? { ratio: 3, resource: null } : { ratio: 2, resource: res })
-  const harborTok = shuffle(tokens, rng).slice(0, harbors.length)
-  return { terrain, number, harborTok }
-}
-
-function pick(arr, rng) {
-  return arr[Math.floor(rng() * arr.length)]
+  const harbors = g.dynamicHarbors ? [] : g.harbors
+  const harborTok = g.fixedHarbors ? harbors.map((h) => h.fixed) : harborTokens(g, rng, harbors.length)
+  return { terrain, number, village, harbors, harborTok }
 }
 
 /** Apply a random move in place; returns a function that reverts it. */
 function mutate(st, g, rng) {
-  const groups = g.isleIds.length ? [g.mainIds, g.mainIds, g.mainIds, g.isleIds] : [g.mainIds]
+  const groups = g.isleIds.length
+    ? g.mainIds.length
+      ? [g.mainIds, g.mainIds, g.mainIds, g.isleIds]
+      : [g.isleIds]
+    : [g.mainIds]
   const ids = pick(groups, rng)
   const roll = rng()
   const { terrain, number, harborTok } = st
@@ -486,6 +579,7 @@ function mutate(st, g, rng) {
     swap(harborTok, a, b)
     return () => swap(harborTok, a, b)
   }
+  if (ids.length < 2) return () => {}
 
   const a = pick(ids, rng)
   let b = pick(ids, rng)
@@ -497,7 +591,7 @@ function mutate(st, g, rng) {
   }
 
   if (roll < 0.55) {
-    // numbers only, unless one side is the desert (then move the whole tile)
+    // numbers only, unless one side has none (desert, sea): then move the whole tile
     if (number[a] == null || number[b] == null) {
       swapTiles()
       return swapTiles
@@ -505,7 +599,8 @@ function mutate(st, g, rng) {
     swap(number, a, b)
     return () => swap(number, a, b)
   }
-  if (roll < 0.85 && terrain[a] !== 'desert' && terrain[b] !== 'desert') {
+  const bothNumbered = number[a] != null && number[b] != null
+  if (roll < 0.85 && bothNumbered) {
     // terrain only, numbers stay where they are
     swap(terrain, a, b)
     return () => swap(terrain, a, b)
@@ -515,7 +610,7 @@ function mutate(st, g, rng) {
 }
 
 function snapshot(st) {
-  return { terrain: st.terrain.slice(), number: st.number.slice(), harborTok: st.harborTok.slice() }
+  return { ...st, terrain: st.terrain.slice(), number: st.number.slice(), harborTok: st.harborTok.slice() }
 }
 
 function anneal(st, g, mode, resWeight, scarce, rules, N, rng) {
@@ -544,20 +639,52 @@ function anneal(st, g, mode, resWeight, scarce, rules, N, rng) {
   return { state: bestSnap, score: best }
 }
 
+/**
+ * New World: harbours go on random coast edges (land next to sea or the frame),
+ * at least one edge apart, i.e. no two share a vertex.
+ */
+function placeDynamicHarbors(st, g, rng) {
+  const isLand = st.terrain.map(isLandTerrain)
+  const candidates = []
+  for (const cell of g.cells) {
+    if (!isLand[cell.id]) continue
+    for (let i = 0; i < 6; i++) {
+      const [nr, nc] = neighborOf(cell.r, cell.c, EDGES[i])
+      const nid = g.byRC.get(nr + ',' + nc)
+      if (nid == null || !isLand[nid]) candidates.push([cell.id, i])
+    }
+  }
+  const want = Object.values(g.tokens || {}).reduce((a, b) => a + b, 0)
+  const usedVerts = new Set()
+  const chosen = []
+  for (const [id, i] of shuffle(candidates, rng)) {
+    if (chosen.length >= want) break
+    const va = g.cellVerts[id][i]
+    const vb = g.cellVerts[id][(i + 1) % 6]
+    if (usedVerts.has(va) || usedVerts.has(vb)) continue
+    usedVerts.add(va)
+    usedVerts.add(vb)
+    chosen.push(makeHarbor(g.cells, g.cellVerts, id, i, null))
+  }
+  st.harbors = chosen
+  st.harborTok = harborTokens(g, rng, chosen.length)
+}
+
 // ---------- stats ----------
 
 function computeStats(st, g) {
-  const { verts, landIds, isLand, mainVerts } = g
+  const { verts, landIds, mainVerts } = g
   const { terrain, number } = st
   const pips = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0, gold: 0 }
   const hexes = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0, gold: 0 }
+  const m = measure(st, g)
+  const isLand = m.isLand
   for (const a of landIds) {
-    const r = TERRAIN[terrain[a]].resource
+    const r = isLand[a] ? TERRAIN[terrain[a]].resource : null
     if (!r) continue
     hexes[r]++
     pips[r] += PIPS[number[a]] || 0
   }
-  const m = measure(st, g)
   const vp = verts.map((v) => {
     let p = 0
     for (const id of v.cells) if (isLand[id] && number[id] != null) p += PIPS[number[id]]
@@ -589,6 +716,7 @@ function computeStats(st, g) {
     harbSame: m.harbSame,
     deserts: m.deserts,
     desertCoast: m.desertCoast,
+    scenarioBad: m.scenarioBad,
     spots,
     maxSpot: spots.length ? spots[0].pips : 0,
   }
@@ -598,26 +726,31 @@ function computeStats(st, g) {
 
 /**
  * @param {object} o
- * @param {'base4'|'base6'|'sea4'|'sea6'} o.layoutKey
+ * @param {string} o.layoutKey   'base4', 'base6' or 'sea:<scenario>:<players>'
  * @param {keyof MODES} o.modeKey
  * @param {string} o.game   game id, used for resource weighting
  * @param {string} o.seed
  * @param {{r68?: string, r212?: string}} [o.rules]  overrides for the mode's adjacency defaults
+ * @param {'variable'|'printed'} [o.setup]  'printed' pins the rulebook diagram where it gives one
  */
-export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides }) {
-  const g = buildGeometry(layoutKey)
+export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides, setup = 'variable' }) {
+  const g = buildGeometry(layoutKey, setup)
   const modeName = MODES[modeKey] ? modeKey : 'advanced'
   const mode = MODES[modeName]
   const rules = { ...RULE_DEFAULTS[modeName], ...(overrides || {}) }
   const ruleKey = rules.r68 + ',' + rules.r212
-  const rng = mulberry32(hashSeed(layoutKey + '|' + modeName + '|' + game + '|' + ruleKey + '|' + seed))
+  const rng = mulberry32(
+    hashSeed(layoutKey + '|' + modeName + '|' + game + '|' + ruleKey + '|' + setup + '|' + seed)
+  )
   const resWeight = RESOURCE_WEIGHTS[game] || {}
   const scarce = mode.scarce ? pick(RESOURCES, rng) : null
 
+  const movable = g.mainIds.length + g.isleIds.length
   // Chaos has no scoring of its own, but a forced or forbidden adjacency
-  // still needs a short search to satisfy it.
-  const hasHardRule = Object.values(rules).some((v) => v !== 'free')
-  const iterations = mode.iterations || (hasHardRule ? 1500 : 0)
+  // (or a scenario constraint) still needs a short search to satisfy it.
+  const hasHardRule =
+    Object.values(rules).some((v) => v !== 'free') || g.nored.length > 0 || g.lowside.length > 0 || g.noLowOn.length > 0
+  const iterations = movable < 2 ? 0 : mode.iterations || (hasHardRule ? 1500 : 0)
 
   let result = null
   let attempts = 0
@@ -627,21 +760,33 @@ export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides
       ? anneal(st, g, mode, resWeight, scarce, rules, iterations, rng)
       : { state: st, score: 0 }
     attempts++
-  } while (hasHardRule && !rulesSatisfied(result.state, g, rules) && attempts < 8)
+  } while (movable >= 2 && hasHardRule && !rulesSatisfied(result.state, g, rules) && attempts < 8)
 
   const st = result.state
+  if (g.dynamicHarbors) placeDynamicHarbors(st, g, rng)
   const stats = computeStats(st, g)
+  const robberId =
+    g.robber != null && st.terrain[g.robber] != null
+      ? g.robber
+      : g.cells.find((c) => st.terrain[c.id] === 'desert' && c.kind !== 'V')?.id ?? null
   return {
     geometry: g,
     layoutKey,
     modeKey: modeName,
     seed,
     rules,
+    setup,
     scarce,
     score: result.score,
     attempts,
-    cells: g.cells.map((c) => ({ ...c, terrain: st.terrain[c.id], number: st.number[c.id] })),
-    harbors: g.harbors.map((h, k) => ({ ...h, token: st.harborTok[k] })),
+    robber: robberId,
+    cells: g.cells.map((c) => ({
+      ...c,
+      terrain: st.terrain[c.id],
+      number: st.number[c.id],
+      village: st.village[c.id],
+    })),
+    harbors: st.harbors.map((h, k) => ({ ...h, token: st.harborTok[k] })),
     stats,
   }
 }

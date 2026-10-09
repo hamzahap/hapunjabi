@@ -10,7 +10,7 @@ $ whoami        # the short version
 $ projects      # browse everything, filter by category
 $ open orbitdesk
 $ arch          # architecture of the rugby platform I maintain
-$ catan seafarers 6 strategy   # seeded Catan board generator
+$ catan seafarers fog 6 strategy   # seeded Catan board generator, all Seafarers scenarios
 $ theme amber   # matrix · amber · ice · paper
 ```
 

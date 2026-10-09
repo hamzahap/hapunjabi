@@ -8,13 +8,18 @@ import {
   DESERT_STATES,
   randomSeed,
 } from '../catan/generator.js'
-import { GAMES, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
+import { GAMES, SCENARIOS, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
 
 const R = 40 // hex radius in SVG units
 
 const PLAYERS = [
-  { id: 4, label: '3–4' },
+  { id: 3, label: '3' },
+  { id: 4, label: '4' },
   { id: 6, label: '5–6' },
+]
+const SETUPS = [
+  { id: 'variable', label: 'shuffled', short: 'the rulebook’s variable set-up' },
+  { id: 'printed', label: 'printed', short: 'the diagram as printed; harbour tokens still shuffle' },
 ]
 
 const GAME_ALIASES = {
@@ -28,8 +33,24 @@ const GAME_ALIASES = {
   barbarians: 'traders',
   tb: 'traders',
   explorers: 'explorers',
-  pirates: 'explorers',
+  ep: 'explorers',
 }
+const SCENARIO_ALIASES = {
+  shores: 'shores',
+  newshores: 'shores',
+  islands: 'islands',
+  four: 'islands',
+  fog: 'fog',
+  desert: 'desert',
+  tribe: 'tribe',
+  forgotten: 'tribe',
+  cloth: 'cloth',
+  pirates: 'pirates',
+  wonders: 'wonders',
+  newworld: 'newworld',
+  world: 'newworld',
+}
+const SETUP_ALIASES = { printed: 'printed', fixed: 'printed', shuffled: 'variable', variable: 'variable' }
 const MODE_ALIASES = {
   beginner: 'beginner',
   easy: 'beginner',
@@ -41,7 +62,7 @@ const MODE_ALIASES = {
   chaos: 'chaos',
   random: 'chaos',
 }
-const PLAYER_ALIASES = { 3: 4, 4: 4, '3-4': 4, 34: 4, 5: 6, 6: 6, '5-6': 6, 56: 6 }
+const PLAYER_ALIASES = { 3: 3, 4: 4, '3-4': 4, 34: 4, 5: 6, 6: 6, '5-6': 6, 56: 6 }
 
 /** `68-touch`, `desert-coast`, … override the mode's defaults for one rule. */
 const PAIR_TITLES = {
@@ -84,6 +105,8 @@ export const CATAN_TOKENS = Array.from(
   new Set([
     ...Object.keys(GAME_ALIASES),
     ...Object.keys(MODE_ALIASES),
+    ...Object.keys(SCENARIO_ALIASES),
+    ...Object.keys(SETUP_ALIASES),
     ...RULE_TOKENS,
     '4',
     '6',
@@ -94,7 +117,7 @@ export const CATAN_TOKENS = Array.from(
 
 /** `catan seafarers 6 strategy 68-touch k3x9pq` in any order; the first unknown token is the seed. */
 export function parseCatanArgs(args = []) {
-  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {} }
+  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {}, scenario: 'shores', setup: 'variable' }
   for (const raw of args) {
     const t = raw.toLowerCase().replace(/^--/, '')
     const dash = t.indexOf('-')
@@ -104,6 +127,8 @@ export function parseCatanArgs(args = []) {
     if (GAME_ALIASES[t]) out.game = GAME_ALIASES[t]
     else if (MODE_ALIASES[t]) out.mode = MODE_ALIASES[t]
     else if (PLAYER_ALIASES[t]) out.players = PLAYER_ALIASES[t]
+    else if (SCENARIO_ALIASES[t]) out.scenario = SCENARIO_ALIASES[t]
+    else if (SETUP_ALIASES[t]) out.setup = SETUP_ALIASES[t]
     else if (rule && rule.states.includes(state)) out.rules[rule.key] = state
     else if (!out.seed && /^[\w.-]{1,24}$/.test(t)) out.seed = t
   }
@@ -118,9 +143,9 @@ function ruleTokens(mode, rules) {
   )
 }
 
-function layoutKeyFor(game, players) {
-  const g = GAMES.find((x) => x.id === game)
-  return `${(g && g.board) || 'base'}${players}`
+function layoutKeyFor(game, players, scenario) {
+  if (game === 'seafarers') return `sea:${scenario}:${players}`
+  return `base${players === 6 ? 6 : 4}`
 }
 
 // ---------- terrain art ----------
@@ -243,8 +268,9 @@ function Pirate() {
   )
 }
 
-function Hex({ cell, pirate }) {
+function Hex({ cell, pirate, robber }) {
   const t = TERRAIN[cell.terrain] || TERRAIN.sea
+  const fog = cell.terrain === 'fog'
   const cx = cell.x * R
   const cy = cell.y * R
   const pts = Array.from({ length: 6 }, (_, i) => {
@@ -254,17 +280,35 @@ function Hex({ cell, pirate }) {
   const sea = cell.terrain === 'sea'
   let label = `${t.label} ${cell.number == null ? '' : cell.number}`.trim()
   if (sea) label = pirate ? 'sea, pirate starts here' : 'sea'
-  if (cell.terrain === 'desert') label = 'desert, robber starts here'
+  if (fog) label = 'unexplored, revealed from the face-down stack'
+  if (cell.village) label = `village, ${t.label} ${cell.village.join(' and ')}`
+  if (robber) label += ', robber starts here'
   return (
     <g>
       <title>{label}</title>
       <polygon
         points={pts}
         fill={t.color}
-        stroke={sea ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.45)'}
+        stroke={sea ? 'rgba(255,255,255,0.18)' : fog ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.45)'}
         strokeWidth={sea ? 0.8 : 1.4}
+        strokeDasharray={fog ? '4 3' : undefined}
         strokeLinejoin="round"
       />
+      {fog && (
+        <text x={cx} y={cy + 7} textAnchor="middle" fontSize="20" fontWeight="700" fill="rgba(0,0,0,0.35)">
+          ?
+        </text>
+      )}
+      {cell.village && (
+        <>
+          <g transform={`translate(${cx - 15},${cy + 11}) scale(0.85)`}>
+            <Token number={cell.village[0]} />
+          </g>
+          <g transform={`translate(${cx + 15},${cy + 11}) scale(0.85)`}>
+            <Token number={cell.village[1]} />
+          </g>
+        </>
+      )}
       <g transform={`translate(${cx},${cy - (cell.number != null ? 16 : 2)})`}>
         <TerrainIcon terrain={cell.terrain} />
       </g>
@@ -273,8 +317,8 @@ function Hex({ cell, pirate }) {
           <Token number={cell.number} />
         </g>
       )}
-      {cell.terrain === 'desert' && (
-        <g transform={`translate(${cx},${cy + 14})`}>
+      {robber && (
+        <g transform={`translate(${cx},${cy + (cell.number != null ? -2 : 14)})`}>
           <Robber />
         </g>
       )}
@@ -326,9 +370,37 @@ function Harbor({ h, verts }) {
   )
 }
 
+const EDGE_INDEX = { NE: 0, E: 1, SE: 2, SW: 3, W: 4, NW: 5 }
+
+function Mark({ mark, cells }) {
+  const [r, c, edge, kind] = mark
+  const cell = cells.find((x) => x.r === r && x.c === c)
+  if (!cell) return null
+  const ang = ((-60 + 60 * EDGE_INDEX[edge]) * Math.PI) / 180
+  const x = (cell.x + Math.cos(ang) * 0.87) * R
+  const y = (cell.y + Math.sin(ang) * 0.87) * R
+  if (kind === 'vp')
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <title>victory point token, taken by the first ship to reach this edge</title>
+        <circle r="7" fill="#c0392b" stroke="#f6ebd0" strokeWidth="1.2" />
+        <text y="2.6" textAnchor="middle" fontSize="6.5" fontWeight="700" fill="#f6ebd0">
+          VP
+        </text>
+      </g>
+    )
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>face-down development card, taken by the first ship to reach this edge</title>
+      <rect x="-6" y="-8" width="12" height="16" rx="1.5" fill="#d9825f" stroke="#5c3a2a" strokeWidth="1" />
+    </g>
+  )
+}
+
 function Board({ board, showSpots }) {
   const { cells, harbors, geometry, stats } = board
   const { verts, pirate } = geometry
+  const marks = geometry.layout.marks || []
   const xs = cells.map((c) => c.x).concat(harbors.map((h) => h.x))
   const ys = cells.map((c) => c.y).concat(harbors.map((h) => h.y))
   const pad = 1.15
@@ -344,7 +416,10 @@ function Board({ board, showSpots }) {
       aria-label="Generated Catan board"
     >
       {cells.map((c) => (
-        <Hex key={c.id} cell={c} pirate={pirate === c.id} />
+        <Hex key={c.id} cell={c} pirate={pirate === c.id} robber={board.robber === c.id} />
+      ))}
+      {marks.map((m, i) => (
+        <Mark key={i} mark={m} cells={cells} />
       ))}
       {harbors.map((h, i) => (
         <Harbor key={i} h={h} verts={verts} />
@@ -451,7 +526,7 @@ function desertCheck(rule, stats) {
   return { label: `desert ${where}`, ok: true, detail: 'no rule set' }
 }
 
-function Checks({ stats, rules }) {
+function Checks({ stats, rules, scenarioRules }) {
   const items = [
     ruleCheck('6 and 8', rules.r68, stats.redAdj),
     ruleCheck('2 and 12', rules.r212, stats.twoTwelve),
@@ -459,6 +534,9 @@ function Checks({ stats, rules }) {
     ruleCheck('same terrain', rules.rter, stats.sameTerrain),
     ruleCheck('harbour + resource', rules.rharb, stats.harbSame),
     desertCheck(rules.rdesert, stats),
+    ...(scenarioRules
+      ? [{ label: 'scenario rules', ok: stats.scenarioBad === 0, detail: `${stats.scenarioBad} hexes break the scenario set-up advice` }]
+      : []),
     { label: `best corner ${stats.maxSpot} pips`, ok: stats.maxSpot <= 12, detail: 'pips on the strongest corner' },
   ]
   return (
@@ -475,6 +553,8 @@ function Checks({ stats, rules }) {
 export function CatanPanel({ initial = {} }) {
   const [game, setGame] = useState(initial.game || 'base')
   const [players, setPlayers] = useState(initial.players || 4)
+  const [scenario, setScenario] = useState(initial.scenario || 'shores')
+  const [setup, setSetup] = useState(initial.setup || 'variable')
   const [mode, setModeState] = useState(initial.mode || 'advanced')
   const [rules, setRules] = useState(initial.rules || {})
   // Switching mode drops any pinned rules back to that mode's defaults.
@@ -489,13 +569,25 @@ export function CatanPanel({ initial = {} }) {
 
   useEffect(() => setSeedInput(seed), [seed])
 
-  const layoutKey = layoutKeyFor(game, players)
+  const seafarers = game === 'seafarers'
+  const scenInfo = SCENARIOS.find((s) => s.id === scenario)
+  const hasPrinted = seafarers && scenario !== 'newworld'
+  const effectiveSetup = hasPrinted ? setup : 'variable'
+  const layoutKey = layoutKeyFor(game, players, scenario)
   const board = useMemo(
-    () => generateBoard({ layoutKey, modeKey: mode, game, seed, rules }),
-    [layoutKey, mode, game, seed, rules]
+    () => generateBoard({ layoutKey, modeKey: mode, game, seed, rules, setup: effectiveSetup }),
+    [layoutKey, mode, game, seed, rules, effectiveSetup]
   )
 
-  const parts = [game, players, mode, ...ruleTokens(mode, rules), seed]
+  const parts = [
+    game,
+    ...(seafarers ? [scenario] : []),
+    players,
+    mode,
+    ...(effectiveSetup === 'printed' ? ['printed'] : []),
+    ...ruleTokens(mode, rules),
+    seed,
+  ]
   const link = `${window.location.origin}${window.location.pathname}#catan/${parts.join('/')}`
 
   const copyLink = useCallback(async () => {
@@ -516,7 +608,6 @@ export function CatanPanel({ initial = {} }) {
   const gameInfo = GAMES.find((g) => g.id === game)
   const explorers = GAMES.find((g) => g.id === 'explorers')
   const modeInfo = MODES[mode]
-  const seafarers = game === 'seafarers'
   const cmd = `catan ${parts.join(' ')}`
   const effectiveRules = board.rules
 
@@ -525,7 +616,16 @@ export function CatanPanel({ initial = {} }) {
       <div className="catan">
         <div className="catan__controls">
           <Segment label="game" options={GAMES} value={game} onChange={setGame} />
+          {seafarers && (
+            <Segment
+              label="scenario"
+              options={SCENARIOS.map((s) => ({ id: s.id, label: s.label, short: s.note }))}
+              value={scenario}
+              onChange={setScenario}
+            />
+          )}
           <Segment label="players" options={PLAYERS} value={players} onChange={setPlayers} />
+          {hasPrinted && <Segment label="setup" options={SETUPS} value={setup} onChange={setSetup} />}
           <Segment
             label="mode"
             options={Object.entries(MODES).map(([id, m]) => ({ id, label: m.label, short: m.short }))}
@@ -597,7 +697,11 @@ export function CatanPanel({ initial = {} }) {
           {board.attempts > 1 && ` · ${board.attempts} passes`}
         </div>
 
-        <Checks stats={board.stats} rules={effectiveRules} />
+        <Checks
+          stats={board.stats}
+          rules={effectiveRules}
+          scenarioRules={board.geometry.nored.length + board.geometry.lowside.length + board.geometry.noLowOn.length > 0}
+        />
 
         <div className="catan__stats">
           <PipRows stats={board.stats} seafarers={seafarers} scarce={board.scarce} />
@@ -607,6 +711,23 @@ export function CatanPanel({ initial = {} }) {
         <p className="catan__note dim">
           <span className="accent">{modeInfo.label}.</span> {modeInfo.desc}
         </p>
+        {seafarers && scenInfo && (
+          <p className="catan__note dim">
+            <span className="accent">{scenInfo.label}.</span> {scenInfo.note}
+            {scenInfo.vp ? ` First to ${scenInfo.vp} VP wins.` : ''}{' '}
+            <span className="faint">{scenInfo.variable}</span>
+            {board.geometry.layout.facedown && (
+              <span className="faint">
+                {' '}
+                Face-down stack:{' '}
+                {Object.entries(board.geometry.layout.facedown.terrain)
+                  .map(([t, n]) => `${n} ${t}`)
+                  .join(', ')}
+                ; numbers {board.geometry.layout.facedown.numbers.join(' ')}.
+              </span>
+            )}
+          </p>
+        )}
         <p className="catan__note faint">
           <span className="dim">{gameInfo.label}.</span> {gameInfo.note}{' '}
           {board.geometry.layout.frameNote && `${board.geometry.layout.frameNote} `}

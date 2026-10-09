@@ -25,6 +25,8 @@
  * 3-3 (2:1 wool), 5-5 (3:1) and 6-6 (sea) joints.
  */
 
+import { SCENARIO_BOARDS } from './scenarios.js'
+
 export const TERRAIN = {
   forest: { label: 'forest', resource: 'wood', color: '#2f7a45' },
   pasture: { label: 'pasture', resource: 'sheep', color: '#8dc63f' },
@@ -34,6 +36,7 @@ export const TERRAIN = {
   desert: { label: 'desert', resource: null, color: '#dcc794' },
   gold: { label: 'gold field', resource: 'gold', color: '#f5c542' },
   sea: { label: 'sea', resource: null, color: '#3b82c4' },
+  fog: { label: 'unexplored', resource: null, color: '#d8dde3' },
 }
 
 export const RESOURCES = ['wood', 'brick', 'sheep', 'wheat', 'ore']
@@ -92,23 +95,6 @@ const FRAME_56 = [
   [1, 2, 'W', 'wood'],
 ]
 
-// Seafarers uses the all-sea side of the frame and shuffled harbour tokens at
-// the positions in the scenario diagram.
-const SEA_HARBORS_34 = FRAME_34.map(([r, c, e]) => [r, c, e])
-const SEA_HARBORS_56 = [
-  [0, 3, 'NW'],
-  [0, 4, 'NE'],
-  [1, 5, 'NE'],
-  [3, 6, 'NE'],
-  [4, 6, 'E'],
-  [5, 5, 'SE'],
-  [6, 4, 'SW'],
-  [5, 2, 'SW'],
-  [4, 2, 'W'],
-  [3, 1, 'NW'],
-  [1, 2, 'W'],
-]
-
 export const LAYOUTS = {
   base4: {
     title: '3–4 players · 19 hexes',
@@ -129,31 +115,6 @@ export const LAYOUTS = {
     frameNote:
       'Harbours are the ones printed on the frame. Long pieces joined 1 → 6 → 5 → 4 → 3 → 2, small pieces at the 3-3 joint (2:1 wool), 2-2 (sea), 6-6 (sea) and 5-5 (3:1).',
   },
-  // Seafarers scenario 1, "Heading for New Shores". Main island is the standard
-  // island; the small islands keep their printed shapes and shuffle terrain +
-  // numbers, which is the variable set-up the rulebook allows.
-  sea4: {
-    title: 'Seafarers · Heading for New Shores · 3–4 players',
-    rows: ['..IIISL', '.IIIISS', '.IIIIISL', 'SIIIISLS', '.SIIISSS', '.SSSSSL', '..LLSLL'],
-    harbors: SEA_HARBORS_34,
-    main: BASE_34,
-    isle: {
-      terrain: { gold: 2, fields: 1, hills: 1, mountains: 2, pasture: 1, forest: 1 },
-      numbers: [2, 3, 4, 5, 8, 9, 10, 11],
-    },
-    pirate: [3, 7],
-  },
-  sea6: {
-    title: 'Seafarers · Heading for New Shores · 5–6 players',
-    rows: ['.LSIIISL', 'SSIIIISL', 'LSIIIIISL', 'SIIIIIIS', 'LSIIIIISL', 'SSIIIISL', '.LSIIISL'],
-    harbors: SEA_HARBORS_56,
-    main: BASE_56,
-    isle: {
-      terrain: { gold: 3, fields: 1, hills: 2, mountains: 2, pasture: 1, forest: 1 },
-      numbers: [2, 3, 4, 5, 6, 8, 9, 10, 11, 12],
-    },
-    pirate: null,
-  },
 }
 
 export const GAMES = [
@@ -168,7 +129,7 @@ export const GAMES = [
     label: 'Seafarers',
     board: 'sea',
     note:
-      'Scenario 1, Heading for New Shores. The frame is flipped to its all-sea side and the harbour tokens from the Seafarers box are shuffled onto the marked edges. The small islands keep their printed shapes; their terrain and numbers shuffle, as the rulebook allows. Gold fields produce a resource of your choice, so they never get a 6 or 8 outside chaos mode.',
+      'All nine scenarios from the 2025 rulebooks. The frame is flipped to its all-sea side and the harbour tokens from the Seafarers box are shuffled onto the marked edges. Gold fields produce a resource of your choice, so they never get a 6 or 8 outside chaos mode.',
   },
   {
     id: 'cities',
@@ -197,4 +158,99 @@ export const GAMES = [
 /** Per-resource weighting of pip targets. Cities & Knights leans on ore/wheat/sheep. */
 export const RESOURCE_WEIGHTS = {
   cities: { wood: 0.9, brick: 0.85, sheep: 1.05, wheat: 1.1, ore: 1.15 },
+}
+
+/**
+ * Seafarers scenarios, in rulebook order. `boards` holds one layout per player
+ * count that has its own diagram (3, 4 and 6; scenarios without a 3-player map
+ * reuse the 4-player one). `variable` is the rulebook's own advice for the
+ * variable set-up; `extra` lists scenario constraints the generator enforces.
+ */
+export const SCENARIOS = [
+  {
+    id: 'shores',
+    label: 'Heading for New Shores',
+    vp: 14,
+    note: 'The standard island plus small islands worth 2 VP for your first settlement on each. Start on the main island.',
+    variable: 'Main island shuffled like the base game; the small islands keep their shapes and shuffle their own hexes and numbers.',
+  },
+  {
+    id: 'islands',
+    label: 'The Four Islands',
+    vp: 13,
+    note: 'Four (or six) islands. Settle one or two as home; each other island is worth 2 VP for your first settlement.',
+    variable: 'All land hexes and numbers shuffle across the islands; forests and pastures never get a 2, 3, 11 or 12.',
+  },
+  {
+    id: 'fog',
+    label: 'The Fog Island',
+    vp: 12,
+    note: 'Two known islands and a bank of fog. Building toward an empty space reveals a hex from the face-down stack, and a land hex pays out immediately.',
+    variable: 'The face-up islands shuffle; the fog spaces stay empty. Red numbers may touch here.',
+  },
+  {
+    id: 'desert',
+    label: 'Through the Desert',
+    vp: 14,
+    note: 'A desert splits the big island. Start on the main part; the strip beyond the desert and the small islands are worth 2 VP each for a first settlement.',
+    variable: 'Deserts stay put. Main island and unexplored regions shuffle separately. No red numbers on gold.',
+  },
+  {
+    id: 'tribe',
+    label: 'The Forgotten Tribe',
+    vp: 13,
+    note: 'One big island ringed by small ones with no numbers. Ships that reach the marked edges pick up VP tokens, development cards and harbours.',
+    variable: 'Only the big island shuffles. Its three east-coast hexes never get a 5, 6, 8 or 9.',
+  },
+  {
+    id: 'cloth',
+    label: 'Cloth for Catan',
+    vp: null,
+    note: 'Two large islands and four villages that produce cloth. Three starting settlements; no settlements on the small islands; no Longest Route.',
+    variable: 'Fixed set-up only. The rulebook gives no variable version.',
+  },
+  {
+    id: 'pirates',
+    label: 'The Pirate Islands',
+    vp: 10,
+    note: 'Start on the east island and build one line of ships to your pirate fortress. Six hexes carry no number. Win with 10 VP and a captured fortress.',
+    variable: 'Fixed set-up only; the rulebook recommends no variations.',
+  },
+  {
+    id: 'wonders',
+    label: 'The Wonders of Catan',
+    vp: 10,
+    note: 'Race to finish a Wonder. Small islands give 1 VP for a first settlement. No pirate.',
+    variable: 'Main island shuffles; the two hexes beside the desert never get a 6 or 8. Deserts and small islands stay put.',
+  },
+  {
+    id: 'newworld',
+    label: 'New World',
+    vp: 12,
+    note: 'No printed map. Every tile including the sea is shuffled into the frame, then harbours go on random coast edges at least one edge apart.',
+    variable: 'Everything shuffles. Unexplored islands give 1 VP for a first settlement.',
+  },
+]
+
+const BASE_TOKENS = { any: 4, wood: 1, brick: 1, sheep: 1, wheat: 1, ore: 1 }
+
+/** Resolve a layout key: 'base4', 'base6', or 'sea:<scenario>:<players>'. */
+export function getLayout(key) {
+  if (LAYOUTS[key]) return { ...LAYOUTS[key], tokens: LAYOUTS[key].main.harbors || BASE_TOKENS }
+  const m = /^sea:(\w+):(\d)$/.exec(key)
+  if (!m) return null
+  const scen = SCENARIOS.find((s) => s.id === m[1])
+  const boards = SCENARIO_BOARDS[m[1]]
+  if (!scen || !boards) return null
+  const players = m[2]
+  const board = boards[players] || boards['4'] || boards['6']
+  const who = boards[players] ? (players === '6' ? '5–6 players' : `${players} players`) : '3–4 players'
+  return {
+    ...board,
+    scenario: scen,
+    title: `Seafarers · ${scen.label} · ${who}`,
+    main: board.main,
+    isle: board.isle,
+    pirate: board.pirate || null,
+  }
 }
