@@ -263,9 +263,22 @@ export default function Terminal() {
   }, [push, runCommand])
 
   // ---------- autoscroll ----------
+  // Follow new output only when the reader is already at the bottom or just
+  // ran a command. Anything pushed while they are scrolled up reading a panel
+  // (the idle nudge, mostly) must not drag them back down.
+  const nearBottomRef = useRef(true)
+  const onScreenScroll = () => {
+    const el = screenRef.current
+    if (el) nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 160
+  }
   useEffect(() => {
     const el = screenRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    if (!el) return
+    const last = blocks[blocks.length - 1]
+    if (nearBottomRef.current || (last && last.kind === 'echo')) {
+      el.scrollTop = el.scrollHeight
+      nearBottomRef.current = true
+    }
   }, [blocks])
 
   // ---------- idle nudge ----------
@@ -441,7 +454,10 @@ export default function Terminal() {
 
   const focusInput = (e) => {
     if (window.getSelection()?.toString()) return
-    if (e.target.closest('a, button, input, select, textarea, label')) return
+    if (e.target.closest('a, button, input, select, textarea, label, svg')) return
+    // On a phone, focusing the shell opens the keyboard and the viewport jumps.
+    // A tap inside a rich panel is someone reading it, not typing.
+    if (e.target.closest('.panel') && window.matchMedia?.('(pointer: coarse)').matches) return
     inputRef.current?.focus()
   }
 
@@ -475,7 +491,7 @@ export default function Terminal() {
         </div>
       </div>
 
-      <main className="screen" ref={screenRef} onMouseUp={focusInput}>
+      <main className="screen" ref={screenRef} onMouseUp={focusInput} onScroll={onScreenScroll}>
         <div
           className="screen__inner"
           role="log"

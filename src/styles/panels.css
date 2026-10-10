@@ -1052,3 +1052,74 @@
 .catan__rule {
   flex-wrap: wrap;
 }
+
+/* ---------- catan how-to-play ---------- */
+
+.howto {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+
+.howto__steps {
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.howto__step {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+}
+
+.howto__step:has(> .howto__text:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.howto__title {
+  color: var(--fg);
+  font-weight: 700;
+  margin-bottom: var(--sp-1);
+}
+
+.howto__text p {
+  margin: 0;
+  color: var(--fg-dim);
+  font-size: 0.85rem;
+}
+
+.howto__figwrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 4px;
+}
+
+.howto__fig {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.howto__fig text {
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 700px) {
+  .howto__step {
+    grid-template-columns: 1fr;
+  }
+
+  .howto__figwrap {
+    max-width: 260px;
+  }
+}
