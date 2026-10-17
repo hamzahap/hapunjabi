@@ -8,7 +8,7 @@ import {
   DESERT_STATES,
   randomSeed,
 } from '../catan/generator.js'
-import { GAMES, SCENARIOS, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
+import { GAMES, SCENARIOS, TERRAIN, RESOURCES, RESOURCE_COLOR, frameOptions } from '../catan/layouts.js'
 import { TerrainIcon, Token, Robber, Pirate } from './CatanArt.jsx'
 import { HowToPlay } from './CatanRules.jsx'
 
@@ -53,6 +53,7 @@ const SCENARIO_ALIASES = {
   world: 'newworld',
 }
 const SETUP_ALIASES = { printed: 'printed', fixed: 'printed', shuffled: 'variable', variable: 'variable' }
+const FRAME_RE = /^frame-([rm][0-5])$/
 const MODE_ALIASES = {
   beginner: 'beginner',
   easy: 'beginner',
@@ -109,6 +110,7 @@ export const CATAN_TOKENS = Array.from(
     ...Object.keys(MODE_ALIASES),
     ...Object.keys(SCENARIO_ALIASES),
     ...Object.keys(SETUP_ALIASES),
+    ...frameOptions(4).map((f) => `frame-${f}`),
     ...RULE_TOKENS,
     '4',
     '6',
@@ -119,7 +121,7 @@ export const CATAN_TOKENS = Array.from(
 
 /** `catan seafarers 6 strategy 68-touch k3x9pq` in any order; the first unknown token is the seed. */
 export function parseCatanArgs(args = []) {
-  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {}, scenario: 'shores', setup: 'variable' }
+  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {}, scenario: 'shores', setup: 'variable', frame: 'r0' }
   for (const raw of args) {
     const t = raw.toLowerCase().replace(/^--/, '')
     const dash = t.indexOf('-')
@@ -131,6 +133,7 @@ export function parseCatanArgs(args = []) {
     else if (PLAYER_ALIASES[t]) out.players = PLAYER_ALIASES[t]
     else if (SCENARIO_ALIASES[t]) out.scenario = SCENARIO_ALIASES[t]
     else if (SETUP_ALIASES[t]) out.setup = SETUP_ALIASES[t]
+    else if (FRAME_RE.test(t)) out.frame = FRAME_RE.exec(t)[1]
     else if (rule && rule.states.includes(state)) out.rules[rule.key] = state
     else if (!out.seed && /^[\w.-]{1,24}$/.test(t)) out.seed = t
   }
@@ -437,6 +440,7 @@ export function CatanPanel({ initial = {} }) {
   const [players, setPlayers] = useState(initial.players || 4)
   const [scenario, setScenario] = useState(initial.scenario || 'shores')
   const [setup, setSetup] = useState(initial.setup || 'variable')
+  const [frame, setFrame] = useState(initial.frame || 'r0')
   const [mode, setModeState] = useState(initial.mode || 'advanced')
   const [rules, setRules] = useState(initial.rules || {})
   // Switching mode drops any pinned rules back to that mode's defaults.
@@ -457,10 +461,19 @@ export function CatanPanel({ initial = {} }) {
   const hasPrinted = seafarers && scenario !== 'newworld'
   const effectiveSetup = hasPrinted ? setup : 'variable'
   const layoutKey = layoutKeyFor(game, players, scenario)
+  // The printed frame only matters for base-game boards; Seafarers flips it.
+  const frames = frameOptions(players)
+  const effectiveFrame = seafarers ? 'r0' : frames.includes(frame) ? frame : 'r0'
   const board = useMemo(
-    () => generateBoard({ layoutKey, modeKey: mode, game, seed, rules, setup: effectiveSetup }),
-    [layoutKey, mode, game, seed, rules, effectiveSetup]
+    () =>
+      generateBoard({ layoutKey, modeKey: mode, game, seed, rules, setup: effectiveSetup, frame: effectiveFrame }),
+    [layoutKey, mode, game, seed, rules, effectiveSetup, effectiveFrame]
   )
+  const frameMirror = effectiveFrame[0] === 'm'
+  const frameTurn = Number(effectiveFrame[1])
+  const turnStep = players === 6 ? 3 : 1
+  const setMirror = (m) => setFrame(`${m ? 'm' : 'r'}${frameTurn}`)
+  const turnFrame = () => setFrame(`${frameMirror ? 'm' : 'r'}${(frameTurn + turnStep) % 6}`)
 
   const parts = [
     game,
@@ -468,6 +481,7 @@ export function CatanPanel({ initial = {} }) {
     players,
     mode,
     ...(effectiveSetup === 'printed' ? ['printed'] : []),
+    ...(effectiveFrame !== 'r0' ? [`frame-${effectiveFrame}`] : []),
     ...ruleTokens(mode, rules),
     seed,
   ]
@@ -509,6 +523,39 @@ export function CatanPanel({ initial = {} }) {
           )}
           <Segment label="players" options={PLAYERS} value={players} onChange={setPlayers} />
           {hasPrinted && <Segment label="setup" options={SETUPS} value={setup} onChange={setSetup} />}
+          {!seafarers && (
+            <div className="catan__row" role="group" aria-label="frame">
+              <span className="catan__rowlabel">frame</span>
+              <button
+                type="button"
+                className="catan__opt"
+                aria-pressed={!frameMirror}
+                title="pieces joined 1 - 6 - 5 - 4 - 3 - 2 clockwise"
+                onClick={() => setMirror(false)}
+              >
+                as printed
+              </button>
+              <button
+                type="button"
+                className="catan__opt"
+                aria-pressed={frameMirror}
+                title="the same pieces joined the other way round the table"
+                onClick={() => setMirror(true)}
+              >
+                mirrored
+              </button>
+              <button
+                type="button"
+                className="btnlink"
+                onClick={turnFrame}
+                title="start the ring one joint further round"
+              >
+                turn {players === 6 ? '180°' : '60°'}
+                {frameTurn ? ` (${frameTurn * 60}°)` : ''}
+              </button>
+              <span className="faint catan__hint">match the harbours to your frame</span>
+            </div>
+          )}
           <Segment
             label="mode"
             options={Object.entries(MODES).map(([id, m]) => ({ id, label: m.label, short: m.short }))}

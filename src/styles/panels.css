@@ -1123,3 +1123,7 @@
     max-width: 260px;
   }
 }
+
+.catan__hint {
+  font-size: 0.75rem;
+}

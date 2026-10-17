@@ -235,8 +235,75 @@ export const SCENARIOS = [
 const BASE_TOKENS = { any: 4, wood: 1, brick: 1, sheep: 1, wheat: 1, ore: 1 }
 
 /** Resolve a layout key: 'base4', 'base6', or 'sea:<scenario>:<players>'. */
-export function getLayout(key) {
-  if (LAYOUTS[key]) return { ...LAYOUTS[key], tokens: LAYOUTS[key].main.harbors || BASE_TOKENS }
+/**
+ * The printed frame can be assembled with any joint at the top-left corner
+ * (six rotations of the ring) and, if the pieces are laid the other way round
+ * the table, as the mirror image. `frame` is 'r<k>' or 'm<k>': mirrored or
+ * not, then rotated k sixths of a turn clockwise. The 5-6 board is only
+ * symmetric under half turns, so k is 0 or 3 there.
+ */
+export function frameOptions(players) {
+  return players === 6
+    ? ['r0', 'r3', 'm0', 'm3']
+    : ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'm0', 'm1', 'm2', 'm3', 'm4', 'm5']
+}
+
+const EDGE_RING = ['NE', 'E', 'SE', 'SW', 'W', 'NW']
+const EDGE_MIRROR = { NE: 'NW', E: 'W', SE: 'SW', SW: 'SE', W: 'E', NW: 'NE' }
+
+/** odd-r offset -> cube coordinates */
+function toCube(r, c) {
+  const x = c - (r - (r & 1)) / 2
+  return [x, -x - r, r]
+}
+function fromCube(x, y, z) {
+  return [z, x + (z - (z & 1)) / 2]
+}
+
+/** Rotate harbours [r, c, edge, type] about the board centre and/or mirror them. */
+function transformHarbors(harbors, rows, frame) {
+  const m = /^([rm])(\d)$/.exec(frame || 'r0')
+  if (!m) return harbors
+  const mirror = m[1] === 'm'
+  const k = Number(m[2]) % 6
+  if (!mirror && k === 0) return harbors
+  const cubes = []
+  rows.forEach((row, r) => Array.from(row).forEach((ch, c) => ch !== '.' && cubes.push(toCube(r, c))))
+  const n = cubes.length
+  const cx = cubes.reduce((s, v) => s + v[0], 0) / n
+  const cy = cubes.reduce((s, v) => s + v[1], 0) / n
+  const cz = cubes.reduce((s, v) => s + v[2], 0) / n
+  return harbors.map(([r, c, edge, type]) => {
+    let [x, y, z] = toCube(r, c)
+    x -= cx
+    y -= cy
+    z -= cz
+    let e = EDGE_RING.indexOf(edge)
+    if (mirror) {
+      // reflection across the vertical axis: swap x and y in cube terms
+      const t = x
+      x = y
+      y = t
+      e = EDGE_RING.indexOf(EDGE_MIRROR[edge])
+    }
+    for (let i = 0; i < k; i++) {
+      // one sixth of a turn clockwise: (x, y, z) -> (-z, -x, -y)
+      const t = [-z, -x, -y]
+      x = t[0]
+      y = t[1]
+      z = t[2]
+      e = (e + 1) % 6
+    }
+    const [nr, nc] = fromCube(Math.round(x + cx), Math.round(y + cy), Math.round(z + cz))
+    return [nr, nc, EDGE_RING[e], type]
+  })
+}
+
+export function getLayout(key, frame = 'r0') {
+  if (LAYOUTS[key]) {
+    const L = LAYOUTS[key]
+    return { ...L, harbors: transformHarbors(L.harbors, L.rows, frame), tokens: L.main.harbors || BASE_TOKENS }
+  }
   const m = /^sea:(\w+):(\d)$/.exec(key)
   if (!m) return null
   const scen = SCENARIOS.find((s) => s.id === m[1])

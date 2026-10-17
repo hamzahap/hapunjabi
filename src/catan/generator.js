@@ -130,8 +130,8 @@ function makeHarbor(cells, cellVerts, id, i, type) {
  * slots, and which cells the search may move. `setup` is 'variable' or
  * 'printed'; printed pins every cell the rulebook diagram fixes.
  */
-export function buildGeometry(layoutKey, setup = 'variable') {
-  const layout = getLayout(layoutKey)
+export function buildGeometry(layoutKey, setup = 'variable', frame = 'r0') {
+  const layout = getLayout(layoutKey, frame)
   if (!layout) throw new Error(`unknown board ${layoutKey}`)
   const cells = []
   const byRC = new Map()
@@ -732,9 +732,10 @@ function computeStats(st, g) {
  * @param {string} o.seed
  * @param {{r68?: string, r212?: string}} [o.rules]  overrides for the mode's adjacency defaults
  * @param {'variable'|'printed'} [o.setup]  'printed' pins the rulebook diagram where it gives one
+ * @param {string} [o.frame]  how the printed frame was assembled, see frameOptions()
  */
-export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides, setup = 'variable' }) {
-  const g = buildGeometry(layoutKey, setup)
+export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides, setup = 'variable', frame = 'r0' }) {
+  const g = buildGeometry(layoutKey, setup, frame)
   const modeName = MODES[modeKey] ? modeKey : 'advanced'
   const mode = MODES[modeName]
   const rules = { ...RULE_DEFAULTS[modeName], ...(overrides || {}) }
