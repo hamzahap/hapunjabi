@@ -9,7 +9,6 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "npm run build",
     "deploy": "wrangler deploy",
     "deploy:www": "wrangler deploy --config deploy/www/wrangler.jsonc",
     "deploy:old-url": "gh-pages --dist deploy/github-pages --message \"Moved to hamzahap.dev\""

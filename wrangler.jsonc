@@ -5,6 +5,9 @@
   // straight from Cloudflare's asset store.
   "name": "hamzahap-dev",
   "compatibility_date": "2026-10-27",
+  // `wrangler deploy` builds first, so neither a deploy from this machine nor
+  // Cloudflare's build on each push to main can ship a stale dist/.
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./dist",
     // /terminal redirects to /terminal/, which serves dist/terminal/index.html.

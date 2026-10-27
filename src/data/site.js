@@ -1,6 +1,9 @@
 /**
  * Content for the `stack`, `uses` and `logs` sections.
  *
+ * The homepage's Writing page renders `stackEntries` and `logs` too, at
+ * #writing/<slug>, so every log needs a slug as well as a date.
+ *
  * `uses` is seeded from what is genuinely installed and in use on my machine —
  * correct anything that has drifted rather than leaving it approximate.
  */
@@ -79,6 +82,7 @@ export const uses = [
 
 export const logs = [
   {
+    slug: 'terminal-rebuild',
     date: '2026-07-26',
     title: 'Rebuilt this site as a terminal',
     body: [

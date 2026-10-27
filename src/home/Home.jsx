@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { profile } from '../data/profile.js'
 import { generalFortunes } from '../data/flavor.js'
 import { homeProjects, highlights, writing } from '../data/home.js'
-import { ProjectIndex, ProjectFeature, DayJob, Writing, About, SiteLink } from './sections.jsx'
+import { ProjectIndex, ProjectFeature, DayJob, Writing, Piece, About, SiteLink } from './sections.jsx'
 import { Play } from './Play.jsx'
 
 /**
  * The homepage is one screen: a cover on the left, and a page on the right
  * that the contents list switches. Each page has its own hash (#job,
- * #make/breakline, …) so it can be linked to and the back button works.
+ * #make/breakline, #writing/majlis, …) so it can be linked to and the back
+ * button works. Projects and writing open inside the page, never in the terminal.
  */
 const PAGES = {
   make: { n: '01', title: 'Things I make', sub: '' },
@@ -27,6 +28,7 @@ const CONTENTS = [
 ]
 
 const bySlug = new Map(homeProjects.map((p) => [p.slug, p]))
+const pieceBySlug = new Map(writing.map((w) => [w.slug, w]))
 const games = homeProjects.filter((p) => p.cat === 'game')
 const tools = homeProjects.filter((p) => p.cat === 'tool')
 const FILTERS = [
@@ -38,8 +40,14 @@ const FILTERS = [
 function readRoute() {
   const [page, slug] = window.location.hash.replace(/^#\/?/, '').split('/')
   // An own-property check, not PAGES[page]: #constructor must not count as a page.
-  if (!Object.prototype.hasOwnProperty.call(PAGES, page)) return { page: 'make', project: null }
-  return { page, project: (page === 'make' && bySlug.get(slug)) || null }
+  if (!Object.prototype.hasOwnProperty.call(PAGES, page)) {
+    return { page: 'make', project: null, piece: null }
+  }
+  return {
+    page,
+    project: (page === 'make' && bySlug.get(slug)) || null,
+    piece: (page === 'writing' && pieceBySlug.get(slug)) || null,
+  }
 }
 
 function useRoute() {
@@ -100,22 +108,23 @@ function Fortune() {
 }
 
 export default function Home() {
-  const { page, project } = useRoute()
+  const { page, project, piece } = useRoute()
   const [filter, setFilter] = useState('hl')
   const headRef = useRef(null)
   const shownRoute = useRef(null)
   const head = PAGES[page]
 
   useEffect(() => {
-    document.title = project
-      ? `${project.name} — ${profile.name}`
+    const opened = project?.name || piece?.title
+    document.title = opened
+      ? `${opened} — ${profile.name}`
       : page === 'make'
         ? profile.name
         : `${head.title} — ${profile.name}`
 
     // Compare with the route already on screen rather than counting renders:
     // StrictMode runs this twice on mount, and only real navigation should move anything.
-    const route = `${page}/${project ? project.slug : ''}`
+    const route = `${page}/${project?.slug || piece?.slug || ''}`
     if (shownRoute.current === route) return
     const first = shownRoute.current === null
     shownRoute.current = route
@@ -124,8 +133,8 @@ export default function Home() {
 
     // On a phone the page sits below the cover, so a tap in the contents, or a
     // shared link like /#make/blockarena, would change something off-screen.
-    // Bring the page up to meet it. On first load, wait for the fonts so the
-    // position is final.
+    // The same goes for "Next" at the foot of a long essay. Bring the page up
+    // to meet it. On first load, wait for the fonts so the position is final.
     const reveal = () => {
       const top = el.getBoundingClientRect().top
       if (top >= 0 && top <= window.innerHeight * 0.6) return
@@ -142,7 +151,7 @@ export default function Home() {
     if (!document.activeElement || document.activeElement === document.body) {
       el.focus({ preventScroll: true })
     }
-  }, [page, project, head])
+  }, [page, project, piece, head])
 
   const list = FILTERS.find(([id]) => id === filter)[2]
 
@@ -241,14 +250,20 @@ export default function Home() {
                 ← All projects
               </a>
             )}
-            {head.sub && <p className="pg-sub">{head.sub}</p>}
+            {piece && (
+              <a className="pg-back" href="#writing">
+                ← All writing
+              </a>
+            )}
+            {head.sub && !piece && <p className="pg-sub">{head.sub}</p>}
           </div>
 
           {page === 'make' && !project && <ProjectIndex list={list} />}
           {project && <ProjectFeature project={project} key={project.slug} />}
           {page === 'job' && <DayJob />}
           {page === 'play' && <Play />}
-          {page === 'writing' && <Writing />}
+          {page === 'writing' && !piece && <Writing />}
+          {piece && <Piece piece={piece} key={piece.slug} />}
           {page === 'about' && <About />}
         </section>
       </main>

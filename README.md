@@ -16,7 +16,7 @@ $ theme amber   # matrix · amber · ice · paper
 $ cd /          # back to the homepage
 ```
 
-Tab completes. `↑`/`↓` walks history. `Ctrl+L` clears. Anything after the `#` in the URL runs as a command on load, so <https://hamzahap.dev/terminal/#open/breakline> deep-links straight to a project. The homepage uses hashes too (`/#play`, `/#make/edgebloom`), so every section can be linked and the back button works.
+Tab completes. `↑`/`↓` walks history. `Ctrl+L` clears. Anything after the `#` in the URL runs as a command on load, so <https://hamzahap.dev/terminal/#open/breakline> deep-links straight to a project. The homepage uses hashes too (`/#play`, `/#make/edgebloom`, `/#writing/majlis`), so every section can be linked and the back button works. Projects and essays open inside the homepage; it never hands you over to the terminal to read something.
 
 ## Why it's built this way
 
@@ -62,30 +62,23 @@ npm run dev
 
 Then open http://localhost:5173/ for the homepage and http://localhost:5173/terminal/ for the shell.
 
-To check the production build the way Cloudflare will serve it (trailing-slash redirects, the 404 page, `_headers`), build it and run it through Wrangler locally:
+To check the production build the way Cloudflare will serve it (trailing-slash redirects, the 404 page, `_headers`), run it through Wrangler locally. It builds first:
 
 ```bash
-npm run build
 npx wrangler dev
 ```
 
 ## Deploying
 
-Hosted on Cloudflare as static assets, no server code. Log in once:
+Hosted on Cloudflare as static assets, no server code. **Every push to `main` deploys.** Cloudflare's Workers Builds watches the repo, installs, and runs `npx wrangler deploy`, which builds to `dist/` first (`build.command` in `wrangler.jsonc`) and uploads the result. Build logs are on the `hamzahap-dev` Worker's page in the Cloudflare dashboard.
 
-```bash
-npx wrangler login
-```
-
-Then:
+To deploy from your own machine instead, log in once with `npx wrangler login`, then:
 
 ```bash
 npm run deploy
 ```
 
-That builds to `dist/` and uploads it. The first deploy also attaches `hamzahap.dev` to the site; Cloudflare creates the DNS record and certificate itself. It is a **manual** step — pushing to `main` does not deploy on its own.
-
-Two one-time extras:
+Two one-time extras, both already done:
 
 - `npm run deploy:www` deploys a tiny Worker that sends `www.hamzahap.dev` to `hamzahap.dev`.
 - `npm run deploy:old-url` replaces the old GitHub Pages site at `hamzahap.github.io/hapunjabi/` with a redirect to hamzahap.dev that keeps deep links working (`#open/breakline` lands on `/terminal/#open/breakline`). Run it only once hamzahap.dev is live. The root of `hamzahap.github.io` is the hkinggames developer site and is not touched.

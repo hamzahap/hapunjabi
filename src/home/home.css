@@ -1143,6 +1143,192 @@ body {
   transform: translateX(4px);
 }
 
+/* One essay or log, read in the page column. */
+.ar {
+  display: grid;
+  gap: 18px;
+  padding-top: 22px;
+}
+
+.ar-head {
+  display: grid;
+  gap: 10px;
+}
+
+.ar-title {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.ar-dek {
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--dim);
+  text-wrap: pretty;
+}
+
+.ar-body {
+  display: grid;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ink);
+}
+
+/* About 70 characters a line at any size; the figure is allowed to run wider. */
+.ar-body > p {
+  max-width: 36em;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.ar-body > .ar-lede {
+  font-size: 19.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.ar-body code {
+  padding: 1px 5px;
+  border: 1px solid var(--rule);
+  background: var(--hover);
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.ar-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  margin-top: 6px;
+  border-top: 2px solid var(--ink);
+}
+
+.e-root .ar-nav a {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 44px;
+  padding: 14px 0;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.e-root .ar-nav a:hover .e-cap,
+.e-root .ar-nav a:hover .ar-nav-t {
+  color: var(--accent);
+}
+
+.ar-nav-next {
+  justify-items: end;
+  text-align: right;
+}
+
+.ar-nav-t {
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  transition: color 0.15s;
+}
+
+/* The ingest essay's figure: the read path as stops on a line. */
+.rp {
+  margin: 6px 0;
+}
+
+.rp-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+
+.rp-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 2px 16px;
+  align-items: baseline;
+  padding: 8px 0 8px 24px;
+}
+
+.rp-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+/* The rail runs from this stop's dot down to the next one's. */
+.rp-step::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 23px;
+  bottom: -14px;
+  width: 1px;
+  background: var(--rule-2);
+}
+
+.rp-step:last-child::after {
+  display: none;
+}
+
+.rp-step.is-key::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-wash);
+}
+
+.rp-step.is-key .rp-verb,
+.rp-step.is-key b {
+  color: var(--accent);
+}
+
+.rp-what {
+  display: grid;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.rp-what b {
+  font-weight: 600;
+}
+
+.rp-what span {
+  font-size: 14px;
+  color: var(--dim);
+}
+
+.rp-aside {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+@container page (max-width: 520px) {
+  .rp-step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ar-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ar-nav-next {
+    justify-items: start;
+    text-align: left;
+    border-top: 1px solid var(--rule);
+  }
+}
+
 /* ---------- 05 · about ---------- */
 
 .ab {

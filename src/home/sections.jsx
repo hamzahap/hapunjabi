@@ -1,5 +1,6 @@
+import { Fragment } from 'react'
 import { Sprite } from './Sprite.jsx'
-import { dayJob, writing, about } from '../data/home.js'
+import { dayJob, writing, readPath, about } from '../data/home.js'
 
 const STATUS = {
   building: 'Building',
@@ -165,7 +166,7 @@ export function Writing() {
   return (
     <div className="v-in">
       {writing.map((w) => (
-        <a className="wr-row" href={w.url} key={w.url}>
+        <a className="wr-row" href={`#writing/${w.slug}`} key={w.slug}>
           <span className="e-meta wr-k">{w.kind}</span>
           <span>
             <span className="wr-t">{w.title}</span>
@@ -177,6 +178,76 @@ export function Writing() {
         </a>
       ))}
     </div>
+  )
+}
+
+/** The logs mark commands with `backticks`; set those in mono. */
+function Prose({ text }) {
+  return text.split('`').map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))
+}
+
+function ReadPath() {
+  return (
+    <figure className="fig rp">
+      <span className="e-meta jb-k">The read path</span>
+      <ol className="rp-list">
+        {readPath.steps.map((s) => (
+          <li key={s.verb} className={s.key ? 'rp-step is-key' : 'rp-step'}>
+            <span className="e-cap rp-verb">{s.verb}</span>
+            <span className="rp-what">
+              <b>{s.name}</b>
+              <span>{s.note}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="rp-aside">{readPath.aside}</p>
+      <figcaption className="e-cap">
+        Fig. — the read path, simplified: feed checks run before anything is cached
+      </figcaption>
+    </figure>
+  )
+}
+
+/** One essay or log, read in the page column rather than in the terminal. */
+export function Piece({ piece: w }) {
+  const i = writing.indexOf(w)
+  const prev = writing[i - 1]
+  const next = writing[i + 1]
+  const [lede, ...rest] = w.body
+  return (
+    <article className="ar v-in">
+      <header className="ar-head">
+        <p className="e-meta">{w.kicker}</p>
+        <h3 className="ar-title">{w.title}</h3>
+        {w.sub && <p className="ar-dek">{w.sub}</p>}
+      </header>
+      <div className="ar-body">
+        <p className="ar-lede">
+          <Prose text={lede} />
+        </p>
+        {rest.map((p, n) => (
+          <Fragment key={n}>
+            <p>
+              <Prose text={p} />
+            </p>
+            {/* The figure follows the paragraph that names the steps. */}
+            {n === 0 && w.readPath && <ReadPath />}
+          </Fragment>
+        ))}
+      </div>
+      {w.tags.length > 0 && <p className="ft-stack">{w.tags.join(' · ')}</p>}
+      <nav className="ar-nav" aria-label="More writing">
+        <a href={prev ? `#writing/${prev.slug}` : '#writing'}>
+          <span className="e-cap">{prev ? '← Previous' : '← All writing'}</span>
+          {prev && <span className="ar-nav-t">{prev.title}</span>}
+        </a>
+        <a className="ar-nav-next" href={next ? `#writing/${next.slug}` : '#writing'}>
+          <span className="e-cap">{next ? 'Next →' : 'All writing →'}</span>
+          {next && <span className="ar-nav-t">{next.title}</span>}
+        </a>
+      </nav>
+    </article>
   )
 }
 

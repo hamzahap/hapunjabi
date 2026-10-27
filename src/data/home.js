@@ -1,10 +1,13 @@
 /**
  * Homepage content.
  *
- * The terminal (projects.js, site.js) has the long versions. These are the
+ * The terminal (projects.js) has the long project write-ups. These are the
  * short ones, written for someone skimming, plus the 9 × 9 sprite each project
  * gets on the index. Same ground rule as projects.js: every claim has to
  * survive someone opening the repo.
+ *
+ * Writing is the exception: the essays and logs in site.js are read in full
+ * on the homepage, so they are imported here rather than linked to.
  *
  * Sprite rows are 9 characters each: w ink, a green, b blue, g light green,
  * r red, d grey, . empty.
@@ -12,6 +15,7 @@
 
 import { blockArena, isOut } from './releases.js'
 import { certifications } from './work.js'
+import { stackEntries, logs } from './site.js'
 
 const T = '/terminal/#'
 const GH = 'https://github.com/hamzahap/'
@@ -123,7 +127,7 @@ export const homeProjects = [
       'Redis holds what is true right now; Postgres holds what has to survive a restart.',
     ],
     stack: 'TypeScript · React Native · Expo · Fastify · Socket.IO · Redis · PostgreSQL',
-    links: [{ label: 'Read: building Majlis →', url: T + 'stack/majlis' }],
+    links: [{ label: 'Read: building Majlis →', url: '#writing/majlis' }],
     icon: [
       'wwwwww...',
       'w....w...',
@@ -550,7 +554,7 @@ export const dayJob = {
     'Azure architecture, DevOps pipelines, and the Next.js and Flutter frontends.',
   ],
   links: [
-    { label: 'Read: how a score gets to your phone →', url: T + 'stack/ingest' },
+    { label: 'Read: how a score gets to your phone →', url: '#writing/ingest' },
     { label: 'allthingsrugby.com ↗', url: 'https://allthingsrugby.com/' },
   ],
   before: [
@@ -573,32 +577,59 @@ export const dayJob = {
   ],
 }
 
+/** One-line standfirsts for the writing list, by slug. The text is in site.js. */
+const standfirsts = {
+  ingest: 'Why the validation step sits in front of the cache, not behind it.',
+  majlis: 'A social multiplayer platform, in four parts.',
+  openclaw: "Someone else's agent, my workflows.",
+  'terminal-rebuild': 'Commands that return React panels instead of strings.',
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+/** '2026-07-26' → 'Jul 2026', or '26 Jul 2026' with the day. */
+const formatDate = (iso, withDay = false) => {
+  const [y, m, d] = iso.split('-')
+  return `${withDay ? `${Number(d)} ` : ''}${MONTHS[Number(m) - 1]} ${y}`
+}
+const minutesToRead = (body) => Math.max(1, Math.round(body.join(' ').split(/\s+/).length / 220))
+
+/** Essays first, in site.js order, then logs, newest first. Each opens at #writing/<slug>. */
 export const writing = [
-  {
+  ...stackEntries.map((e) => ({
+    slug: e.slug,
     kind: 'Essay',
-    title: 'Getting a scoreline from a provider to a phone',
-    sub: 'Why the validation step sits in front of the cache, not behind it.',
-    url: T + 'stack/ingest',
-  },
-  {
-    kind: 'Essay',
-    title: 'Building Majlis',
-    sub: 'A social multiplayer platform, in four parts.',
-    url: T + 'stack/majlis',
-  },
-  {
-    kind: 'Essay',
-    title: 'Running OpenClaw on live data',
-    sub: "Someone else's agent, my workflows.",
-    url: T + 'stack/openclaw',
-  },
-  {
-    kind: 'Log · Jul 2026',
-    title: 'Rebuilt this site as a terminal',
-    sub: 'Commands that return React panels instead of strings.',
-    url: T + 'logs',
-  },
+    kicker: `Essay · ${minutesToRead(e.body)} min read`,
+    title: e.title,
+    sub: standfirsts[e.slug] || '',
+    body: e.body,
+    tags: e.tags,
+    readPath: e.diagram,
+  })),
+  ...[...logs]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map((l) => ({
+      slug: l.slug,
+      kind: `Log · ${formatDate(l.date)}`,
+      kicker: `Log · ${formatDate(l.date, true)}`,
+      title: l.title,
+      sub: standfirsts[l.slug] || '',
+      body: l.body,
+      tags: [],
+      readPath: false,
+    })),
 ]
+
+/** The figure in the ingest essay: the steps its second paragraph names, as on the terminal's `arch`. */
+export const readPath = {
+  steps: [
+    { verb: 'Fetch', name: 'Provider APIs', note: 'several third-party feeds' },
+    { verb: 'Validate', name: 'Feed checks', note: 'shape and match-state validation', key: true },
+    { verb: 'Store + cache', name: 'SQL + cache', note: 'in-memory aggregation' },
+    { verb: 'Serve', name: 'REST API', note: '.NET, concurrency-safe refresh' },
+    { verb: 'Read', name: 'Web and app', note: 'allthingsrugby.com and The Rugby App' },
+  ],
+  aside: "Editors' overrides from the CRM, and OpenClaw's briefs and alerts, join at the API.",
+}
 
 export const about = {
   bio: "I'm a software engineer in Doha, Qatar. I studied computer science at Memorial University in St. John's, Newfoundland, and spent a year of it at SmartICE building tools for sea-ice monitoring. These days I build backends for a living, and games and developer tools for fun.",
