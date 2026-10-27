@@ -756,6 +756,31 @@ body {
   background: var(--accent);
 }
 
+/* A project that is more than one app names each of them. */
+.ft-parts {
+  margin: 0;
+  display: grid;
+  border-top: 1px solid var(--rule);
+}
+
+.ft-parts > div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.ft-parts dt {
+  font-weight: 600;
+}
+
+.ft-parts dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
 .ft-stack {
   font-family: var(--mono);
   font-size: 12.5px;
@@ -1093,6 +1118,373 @@ body {
   display: inline-block;
   width: 9px;
   height: 9px;
+}
+
+/* The full generator at #play/catan. It is the terminal's own component
+   (src/panels/CatanPanel.jsx), so these rules restyle its classes for paper,
+   and the variables below are the ones its SVG board and figures colour
+   themselves with. Everything is scoped to .hc. */
+.hc {
+  --fg: var(--ink);
+  --fg-dim: var(--dim);
+  --fg-faint: var(--faint);
+  --bg: var(--paper);
+  --bg-inset: var(--card);
+  --bg-raised: var(--card);
+  --border-ui: var(--rule-2);
+  display: grid;
+  gap: 18px;
+  padding-top: 22px;
+}
+
+.hc-wait {
+  padding-top: 22px;
+}
+
+.hc .catan {
+  display: grid;
+  gap: 16px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ink);
+}
+
+.hc .faint {
+  color: var(--faint);
+}
+
+.hc .dim {
+  color: var(--dim);
+}
+
+.hc .accent {
+  color: var(--accent);
+}
+
+.hc .warn {
+  color: #8a5300;
+}
+
+.hc .danger {
+  color: var(--red);
+}
+
+/* The label sits in a left margin, so options that wrap line up under the first. */
+.hc .catan__row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0 8px 96px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.hc .catan__rowlabel {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Choices read as words; actions (new board, copy link) as the site's mono buttons. */
+.hc .catan__opt,
+.hc .btnlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--rule-2);
+  background: var(--card);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.hc .btnlink {
+  border-color: var(--ink);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hc .catan__opt:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.hc .btnlink:hover,
+.hc .catan__opt[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.hc .catan__opt:disabled {
+  cursor: not-allowed;
+  color: var(--faint);
+  text-decoration: line-through;
+}
+
+.hc .catan__opt--sm {
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+.hc .catan__rule {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-right: 14px;
+}
+
+.hc .catan__rulelabel {
+  margin-right: 2px;
+  font-size: 13.5px;
+  white-space: nowrap;
+  color: var(--ink-3);
+}
+
+.hc .catan__hint {
+  font-size: 13px;
+}
+
+.hc .catan__seed {
+  width: 12ch;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--rule-2);
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.hc .catan__seed:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hc .catan__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  font-size: 14px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.hc .catan__toggle input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+/* The board is the figure: card and ink rule. */
+.hc .catan__boardwrap {
+  overflow-x: auto;
+  padding: 14px;
+  background: var(--card);
+  border: 1px solid var(--ink);
+}
+
+.hc .catan__boardwrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Never below two thirds of the board's own size (--board-w, set by the
+   component): the base island still fits a phone, and a wide Seafarers map
+   scrolls sideways instead of shrinking past reading. */
+.hc .catan__svg {
+  display: block;
+  width: 100%;
+  min-width: calc(var(--board-w, 600) * 0.66px);
+  max-width: 760px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.hc .catan__svg text,
+.hc .howto__fig text {
+  font-family: var(--mono);
+}
+
+.hc .catan__meta {
+  margin-top: -6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.hc .catan__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hc .tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--rule-2);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--dim);
+}
+
+.hc .tag--accent {
+  border-color: var(--accent-wash);
+  background: color-mix(in srgb, var(--accent-wash) 40%, transparent);
+  color: var(--accent);
+}
+
+.hc .catan__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 28px;
+  padding: 16px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.hc .detail__label {
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.hc .catan__piprow {
+  display: grid;
+  grid-template-columns: 6ch minmax(0, 1fr) 10ch;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.hc .catan__piprow > span:last-child {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.hc .catan__bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--hover);
+  border: 1px solid var(--rule);
+}
+
+.hc .catan__barfill {
+  height: 100%;
+  transition: width 0.25s;
+}
+
+.hc .detail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+/* Each corner already reads "13 pips — 9 brick · 5 sheep", so no bullet. */
+.hc .detail__list li {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.hc .catan__note {
+  max-width: 44em;
+  font-size: 14.5px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* How to play, opened from the seed row. */
+.hc .howto {
+  display: grid;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 2px solid var(--ink);
+}
+
+.hc .howto__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hc .howto__step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 12px 20px;
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.hc .howto__step:has(> .howto__text:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.hc .howto__title {
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.hc .howto__text p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+.hc .howto__figwrap {
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--rule-2);
+}
+
+.hc .howto__fig {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@container page (max-width: 520px) {
+  .hc .catan__row {
+    padding-left: 0;
+  }
+  .hc .catan__rowlabel {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+  .hc .catan__boardwrap {
+    padding: 8px;
+  }
+  .hc .howto__step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hc .howto__figwrap {
+    max-width: 260px;
+  }
 }
 
 /* ---------- 04 · writing ---------- */

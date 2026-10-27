@@ -199,7 +199,7 @@ function PocketCatan() {
         <button type="button" className="e-play" onClick={() => setSeed(randomSeed())}>
           Shuffle
         </button>
-        <a className="e-link" href="/terminal/#catan">
+        <a className="e-link" href="#play/catan">
           The full generator →
         </a>
       </div>

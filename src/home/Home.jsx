@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { profile } from '../data/profile.js'
 import { generalFortunes } from '../data/flavor.js'
 import { homeProjects, highlights, writing } from '../data/home.js'
 import { ProjectIndex, ProjectFeature, DayJob, Writing, Piece, About, SiteLink } from './sections.jsx'
 import { Play } from './Play.jsx'
 
+// Every Seafarers layout and the how-to-play figures: worth loading only when asked for.
+const CatanPage = lazy(() => import('./CatanPage.jsx'))
+
 /**
  * The homepage is one screen: a cover on the left, and a page on the right
  * that the contents list switches. Each page has its own hash (#job,
- * #make/breakline, #writing/majlis, …) so it can be linked to and the back
- * button works. Projects and writing open inside the page, never in the terminal.
+ * #make/breakline, #writing/majlis, #play/catan, …) so it can be linked to and
+ * the back button works. Projects, writing and the full Catan generator all
+ * open inside the page; nothing in it sends you to the terminal.
  */
 const PAGES = {
   make: { n: '01', title: 'Things I make', sub: '' },
@@ -38,15 +42,17 @@ const FILTERS = [
 ]
 
 function readRoute() {
-  const [page, slug] = window.location.hash.replace(/^#\/?/, '').split('/')
+  const [page, slug, ...rest] = window.location.hash.replace(/^#\/?/, '').split('/')
   // An own-property check, not PAGES[page]: #constructor must not count as a page.
   if (!Object.prototype.hasOwnProperty.call(PAGES, page)) {
-    return { page: 'make', project: null, piece: null }
+    return { page: 'make', project: null, piece: null, catan: null }
   }
   return {
     page,
     project: (page === 'make' && bySlug.get(slug)) || null,
     piece: (page === 'writing' && pieceBySlug.get(slug)) || null,
+    // The full generator; anything after #play/catan/ is a shared board's settings.
+    catan: page === 'play' && slug === 'catan' ? rest : null,
   }
 }
 
@@ -108,14 +114,14 @@ function Fortune() {
 }
 
 export default function Home() {
-  const { page, project, piece } = useRoute()
+  const { page, project, piece, catan } = useRoute()
   const [filter, setFilter] = useState('hl')
   const headRef = useRef(null)
   const shownRoute = useRef(null)
   const head = PAGES[page]
 
   useEffect(() => {
-    const opened = project?.name || piece?.title
+    const opened = project?.name || piece?.title || (catan && 'Catan board generator')
     document.title = opened
       ? `${opened} — ${profile.name}`
       : page === 'make'
@@ -124,7 +130,7 @@ export default function Home() {
 
     // Compare with the route already on screen rather than counting renders:
     // StrictMode runs this twice on mount, and only real navigation should move anything.
-    const route = `${page}/${project?.slug || piece?.slug || ''}`
+    const route = `${page}/${project?.slug || piece?.slug || (catan ? 'catan' : '')}`
     if (shownRoute.current === route) return
     const first = shownRoute.current === null
     shownRoute.current = route
@@ -151,7 +157,7 @@ export default function Home() {
     if (!document.activeElement || document.activeElement === document.body) {
       el.focus({ preventScroll: true })
     }
-  }, [page, project, piece, head])
+  }, [page, project, piece, catan, head])
 
   const list = FILTERS.find(([id]) => id === filter)[2]
 
@@ -255,13 +261,23 @@ export default function Home() {
                 ← All writing
               </a>
             )}
-            {head.sub && !piece && <p className="pg-sub">{head.sub}</p>}
+            {catan && (
+              <a className="pg-back" href="#play">
+                ← Pocket games
+              </a>
+            )}
+            {head.sub && !piece && !catan && <p className="pg-sub">{head.sub}</p>}
           </div>
 
           {page === 'make' && !project && <ProjectIndex list={list} />}
           {project && <ProjectFeature project={project} key={project.slug} />}
           {page === 'job' && <DayJob />}
-          {page === 'play' && <Play />}
+          {page === 'play' && !catan && <Play />}
+          {catan && (
+            <Suspense fallback={<p className="e-cap hc-wait">Shuffling the hexes…</p>}>
+              <CatanPage args={catan} key={catan.join('/')} />
+            </Suspense>
+          )}
           {page === 'writing' && !piece && <Writing />}
           {piece && <Piece piece={piece} key={piece.slug} />}
           {page === 'about' && <About />}

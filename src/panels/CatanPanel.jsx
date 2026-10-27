@@ -297,6 +297,8 @@ function Board({ board, showSpots }) {
     <svg
       className="catan__svg"
       viewBox={`${minX.toFixed(0)} ${minY.toFixed(0)} ${(maxX - minX).toFixed(0)} ${(maxY - minY).toFixed(0)}`}
+      // The board's own width, for a stylesheet that won't shrink it past legible.
+      style={{ '--board-w': Math.round(maxX - minX) }}
       role="img"
       aria-label="Generated Catan board"
     >
@@ -436,6 +438,23 @@ function Checks({ stats, rules, scenarioRules }) {
 }
 
 export function CatanPanel({ initial = {} }) {
+  return (
+    <Panel title="CATAN" sub="board generator · seeded, shareable">
+      <CatanGenerator
+        initial={initial}
+        linkBase={`${window.location.origin}${window.location.pathname}#catan/`}
+        shell
+      />
+    </Panel>
+  )
+}
+
+/**
+ * The generator without the panel chrome, so the homepage can show it in its
+ * own page too. `linkBase` is where a shared board opens; `shell` adds the
+ * command that brings the board back, which only means something in the terminal.
+ */
+export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
   const [game, setGame] = useState(initial.game || 'base')
   const [players, setPlayers] = useState(initial.players || 4)
   const [scenario, setScenario] = useState(initial.scenario || 'shores')
@@ -485,7 +504,7 @@ export function CatanPanel({ initial = {} }) {
     ...ruleTokens(mode, rules),
     seed,
   ]
-  const link = `${window.location.origin}${window.location.pathname}#catan/${parts.join('/')}`
+  const link = linkBase + parts.join('/')
 
   const copyLink = useCallback(async () => {
     try {
@@ -509,175 +528,179 @@ export function CatanPanel({ initial = {} }) {
   const effectiveRules = board.rules
 
   return (
-    <Panel title="CATAN" sub="board generator · seeded, shareable">
-      <div className="catan">
-        <div className="catan__controls">
-          <Segment label="game" options={GAMES} value={game} onChange={setGame} />
-          {seafarers && (
-            <Segment
-              label="scenario"
-              options={SCENARIOS.map((s) => ({ id: s.id, label: s.label, short: s.note }))}
-              value={scenario}
-              onChange={setScenario}
-            />
-          )}
-          <Segment label="players" options={PLAYERS} value={players} onChange={setPlayers} />
-          {hasPrinted && <Segment label="setup" options={SETUPS} value={setup} onChange={setSetup} />}
-          {!seafarers && (
-            <div className="catan__row" role="group" aria-label="frame">
-              <span className="catan__rowlabel">frame</span>
-              <button
-                type="button"
-                className="catan__opt"
-                aria-pressed={!frameMirror}
-                title="pieces joined 1 - 6 - 5 - 4 - 3 - 2 clockwise"
-                onClick={() => setMirror(false)}
-              >
-                as printed
-              </button>
-              <button
-                type="button"
-                className="catan__opt"
-                aria-pressed={frameMirror}
-                title="the same pieces joined the other way round the table"
-                onClick={() => setMirror(true)}
-              >
-                mirrored
-              </button>
-              <button
-                type="button"
-                className="btnlink"
-                onClick={turnFrame}
-                title="start the ring one joint further round"
-              >
-                turn {players === 6 ? '180°' : '60°'}
-                {frameTurn ? ` (${frameTurn * 60}°)` : ''}
-              </button>
-              <span className="faint catan__hint">match the harbours to your frame</span>
-            </div>
-          )}
+    <div className="catan">
+      <div className="catan__controls">
+        <Segment label="game" options={GAMES} value={game} onChange={setGame} />
+        {seafarers && (
           <Segment
-            label="mode"
-            options={Object.entries(MODES).map(([id, m]) => ({ id, label: m.label, short: m.short }))}
-            value={mode}
-            onChange={setMode}
+            label="scenario"
+            options={SCENARIOS.map((s) => ({ id: s.id, label: s.label, short: s.note }))}
+            value={scenario}
+            onChange={setScenario}
           />
-          <div className="catan__row" role="group" aria-label="rules">
-            <span className="catan__rowlabel">rules</span>
-            {RULES.map((r) => (
-              <span className="catan__rule" key={r.key} role="group" aria-label={r.label}>
-                <span className="catan__rulelabel">{r.label}</span>
-                {r.states.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="catan__opt catan__opt--sm"
-                    aria-pressed={effectiveRules[r.key] === s}
-                    title={r.titles[s]}
-                    onClick={() => setRules({ ...rules, [r.key]: s })}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </span>
-            ))}
+        )}
+        <Segment label="players" options={PLAYERS} value={players} onChange={setPlayers} />
+        {hasPrinted && <Segment label="setup" options={SETUPS} value={setup} onChange={setSetup} />}
+        {!seafarers && (
+          <div className="catan__row" role="group" aria-label="frame">
+            <span className="catan__rowlabel">frame</span>
+            <button
+              type="button"
+              className="catan__opt"
+              aria-pressed={!frameMirror}
+              title="pieces joined 1 - 6 - 5 - 4 - 3 - 2 clockwise"
+              onClick={() => setMirror(false)}
+            >
+              as printed
+            </button>
+            <button
+              type="button"
+              className="catan__opt"
+              aria-pressed={frameMirror}
+              title="the same pieces joined the other way round the table"
+              onClick={() => setMirror(true)}
+            >
+              mirrored
+            </button>
+            <button
+              type="button"
+              className="btnlink"
+              onClick={turnFrame}
+              title="start the ring one joint further round"
+            >
+              turn {players === 6 ? '180°' : '60°'}
+              {frameTurn ? ` (${frameTurn * 60}°)` : ''}
+            </button>
+            <span className="faint catan__hint">match the harbours to your frame</span>
           </div>
-          <div className="catan__row">
-            <label className="catan__rowlabel" htmlFor="catan-seed">
-              seed
-            </label>
-            <input
-              id="catan-seed"
-              className="catan__seed"
-              value={seedInput}
-              onChange={(e) => setSeedInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') applySeed()
-              }}
-              onBlur={() => {
-                if (seedInput.trim() && seedInput.trim() !== seed) applySeed()
-              }}
-              spellCheck="false"
-              autoComplete="off"
-            />
-            <button type="button" className="btnlink" onClick={() => setSeed(randomSeed())}>
-              new board
-            </button>
-            <button type="button" className="btnlink" onClick={copyLink}>
-              {copied ? 'copied ✓' : 'copy link'}
-            </button>
-            <button type="button" className="btnlink" aria-pressed={showHowTo} onClick={() => setShowHowTo((v) => !v)}>
-              {showHowTo ? 'hide rules' : 'how to play'}
-            </button>
-            <label className="catan__toggle">
-              <input
-                type="checkbox"
-                checked={showSpots}
-                onChange={(e) => setShowSpots(e.target.checked)}
-              />{' '}
-              best corners
-            </label>
-          </div>
-        </div>
-
-        <div className="catan__boardwrap" tabIndex={0}>
-          <Board board={board} showSpots={showSpots} />
-        </div>
-
-        <div className="catan__meta faint">
-          {board.geometry.layout.title} · {modeInfo.label.toLowerCase()} · seed{' '}
-          <span className="accent">{seed}</span>
-          {board.attempts > 1 && ` · ${board.attempts} passes`}
-        </div>
-
-        <Checks
-          stats={board.stats}
-          rules={effectiveRules}
-          scenarioRules={board.geometry.nored.length + board.geometry.lowside.length + board.geometry.noLowOn.length > 0}
+        )}
+        <Segment
+          label="mode"
+          options={Object.entries(MODES).map(([id, m]) => ({ id, label: m.label, short: m.short }))}
+          value={mode}
+          onChange={setMode}
         />
-
-        <div className="catan__stats">
-          <PipRows stats={board.stats} seafarers={seafarers} scarce={board.scarce} />
-          <Spots stats={board.stats} />
+        <div className="catan__row" role="group" aria-label="rules">
+          <span className="catan__rowlabel">rules</span>
+          {RULES.map((r) => (
+            <span className="catan__rule" key={r.key} role="group" aria-label={r.label}>
+              <span className="catan__rulelabel">{r.label}</span>
+              {r.states.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="catan__opt catan__opt--sm"
+                  aria-pressed={effectiveRules[r.key] === s}
+                  title={r.titles[s]}
+                  onClick={() => setRules({ ...rules, [r.key]: s })}
+                >
+                  {s}
+                </button>
+              ))}
+            </span>
+          ))}
         </div>
-
-        <p className="catan__note dim">
-          <span className="accent">{modeInfo.label}.</span> {modeInfo.desc}
-        </p>
-        {seafarers && scenInfo && (
-          <p className="catan__note dim">
-            <span className="accent">{scenInfo.label}.</span> {scenInfo.note}
-            {scenInfo.vp ? ` First to ${scenInfo.vp} VP wins.` : ''}{' '}
-            <span className="faint">{scenInfo.variable}</span>
-            {board.geometry.layout.facedown && (
-              <span className="faint">
-                {' '}
-                Face-down stack:{' '}
-                {Object.entries(board.geometry.layout.facedown.terrain)
-                  .map(([t, n]) => `${n} ${t}`)
-                  .join(', ')}
-                ; numbers {board.geometry.layout.facedown.numbers.join(' ')}.
-              </span>
-            )}
-          </p>
-        )}
-        <p className="catan__note faint">
-          <span className="dim">{gameInfo.label}.</span> {gameInfo.note}{' '}
-          {board.geometry.layout.frameNote && `${board.geometry.layout.frameNote} `}
-          {explorers.note}
-        </p>
-        <p className="catan__note faint">
-          <span className="accent">{cmd}</span> brings this exact board back. The link does the same.
-        </p>
-        {showHowTo && (
-          <HowToPlay
-            game={game}
-            scenario={scenario}
-            players={players}
-            scenarioLabel={scenInfo ? scenInfo.label : ''}
+        <div className="catan__row">
+          <label className="catan__rowlabel" htmlFor="catan-seed">
+            seed
+          </label>
+          <input
+            id="catan-seed"
+            className="catan__seed"
+            value={seedInput}
+            onChange={(e) => setSeedInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') applySeed()
+            }}
+            onBlur={() => {
+              if (seedInput.trim() && seedInput.trim() !== seed) applySeed()
+            }}
+            spellCheck="false"
+            autoComplete="off"
           />
-        )}
+          <button type="button" className="btnlink" onClick={() => setSeed(randomSeed())}>
+            new board
+          </button>
+          <button type="button" className="btnlink" onClick={copyLink}>
+            {copied ? 'copied ✓' : 'copy link'}
+          </button>
+          <button type="button" className="btnlink" aria-pressed={showHowTo} onClick={() => setShowHowTo((v) => !v)}>
+            {showHowTo ? 'hide rules' : 'how to play'}
+          </button>
+          <label className="catan__toggle">
+            <input
+              type="checkbox"
+              checked={showSpots}
+              onChange={(e) => setShowSpots(e.target.checked)}
+            />{' '}
+            best corners
+          </label>
+        </div>
       </div>
-    </Panel>
+
+      <div className="catan__boardwrap" tabIndex={0}>
+        <Board board={board} showSpots={showSpots} />
+      </div>
+
+      <div className="catan__meta faint">
+        {board.geometry.layout.title} · {modeInfo.label.toLowerCase()} · seed{' '}
+        <span className="accent">{seed}</span>
+        {board.attempts > 1 && ` · ${board.attempts} passes`}
+      </div>
+
+      <Checks
+        stats={board.stats}
+        rules={effectiveRules}
+        scenarioRules={board.geometry.nored.length + board.geometry.lowside.length + board.geometry.noLowOn.length > 0}
+      />
+
+      <div className="catan__stats">
+        <PipRows stats={board.stats} seafarers={seafarers} scarce={board.scarce} />
+        <Spots stats={board.stats} />
+      </div>
+
+      <p className="catan__note dim">
+        <span className="accent">{modeInfo.label}.</span> {modeInfo.desc}
+      </p>
+      {seafarers && scenInfo && (
+        <p className="catan__note dim">
+          <span className="accent">{scenInfo.label}.</span> {scenInfo.note}
+          {scenInfo.vp ? ` First to ${scenInfo.vp} VP wins.` : ''}{' '}
+          <span className="faint">{scenInfo.variable}</span>
+          {board.geometry.layout.facedown && (
+            <span className="faint">
+              {' '}
+              Face-down stack:{' '}
+              {Object.entries(board.geometry.layout.facedown.terrain)
+                .map(([t, n]) => `${n} ${t}`)
+                .join(', ')}
+              ; numbers {board.geometry.layout.facedown.numbers.join(' ')}.
+            </span>
+          )}
+        </p>
+      )}
+      <p className="catan__note faint">
+        <span className="dim">{gameInfo.label}.</span> {gameInfo.note}{' '}
+        {board.geometry.layout.frameNote && `${board.geometry.layout.frameNote} `}
+        {explorers.note}
+      </p>
+      <p className="catan__note faint">
+        {shell ? (
+          <>
+            <span className="accent">{cmd}</span> brings this exact board back. The link does the same.
+          </>
+        ) : (
+          'Copy the link and everyone at the table opens this exact board.'
+        )}
+      </p>
+      {showHowTo && (
+        <HowToPlay
+          game={game}
+          scenario={scenario}
+          players={players}
+          scenarioLabel={scenInfo ? scenInfo.label : ''}
+        />
+      )}
+    </div>
   )
 }

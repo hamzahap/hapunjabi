@@ -74,24 +74,36 @@ export function ProjectFeature({ project: p }) {
         <p className="e-meta">{kicker}</p>
         <h3 className="ft-title">{p.name}</h3>
         <p className="ft-p">{p.desc}</p>
+        {p.parts && (
+          <dl className="ft-parts">
+            {p.parts.map((part) => (
+              <div key={part.name}>
+                <dt>{part.name}</dt>
+                <dd>{part.text}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
         <ul className="dash">
           {p.notes.map((n) => (
             <li key={n}>{n}</li>
           ))}
         </ul>
         <p className="ft-stack">{p.stack}</p>
-        <div className="ft-links">
-          {p.links.map((l) => (
-            <SiteLink key={l.url} href={l.url}>
-              {l.label}
-            </SiteLink>
-          ))}
-          {p.playable && (
-            <a className="e-play" href="#play">
-              Play the pocket version
-            </a>
-          )}
-        </div>
+        {(p.links.length > 0 || p.playable) && (
+          <div className="ft-links">
+            {p.links.map((l) => (
+              <SiteLink key={l.url} href={l.url}>
+                {l.label}
+              </SiteLink>
+            ))}
+            {p.playable && (
+              <a className="e-play" href="#play">
+                Play the pocket version
+              </a>
+            )}
+          </div>
+        )}
       </div>
       <figure className="fig ft-fig">
         <Sprite rows={p.icon} large />

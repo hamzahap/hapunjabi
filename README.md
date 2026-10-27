@@ -16,7 +16,7 @@ $ theme amber   # matrix · amber · ice · paper
 $ cd /          # back to the homepage
 ```
 
-Tab completes. `↑`/`↓` walks history. `Ctrl+L` clears. Anything after the `#` in the URL runs as a command on load, so <https://hamzahap.dev/terminal/#open/breakline> deep-links straight to a project. The homepage uses hashes too (`/#play`, `/#make/edgebloom`, `/#writing/majlis`), so every section can be linked and the back button works. Projects and essays open inside the homepage; it never hands you over to the terminal to read something.
+Tab completes. `↑`/`↓` walks history. `Ctrl+L` clears. Anything after the `#` in the URL runs as a command on load, so <https://hamzahap.dev/terminal/#open/breakline> deep-links straight to a project. The homepage uses hashes too (`/#play`, `/#make/edgebloom`, `/#writing/majlis`, `/#play/catan`), so every section can be linked and the back button works. Projects, essays and the full Catan generator open inside the homepage; it never hands you over to the terminal for the rest.
 
 ## Why it's built this way
 
@@ -28,7 +28,7 @@ Not everyone wants a shell, though, which is what the homepage is for. It reads 
 
 ## Stack
 
-React 18 + Vite, as a two-page build. No UI framework, no CSS library, no state manager. React is split into its own chunk that both pages share; the homepage's own code is about 13 kB gzipped.
+React 18 + Vite, as a two-page build. No UI framework, no CSS library, no state manager. React is split into its own chunk that both pages share; the homepage's own code is about 15 kB gzipped, and the Catan generator loads only when someone opens it.
 
 ## Layout
 
@@ -41,7 +41,7 @@ src/
     Terminal.jsx     shell: input, history, tab completion, boot sequence
     commands.jsx     command registry — name, aliases, completions, run()
   panels/            what commands render (project cards, timelines, SVG diagram)
-  catan/             the board generator behind `catan`
+  catan/             the board generator behind `catan` and the homepage's /#play/catan
   data/              projects, work history, skills, profile, homepage copy
   styles/            terminal design system + four themes as CSS custom properties
 public/              copied as-is: résumé, share images, 404 page, _headers

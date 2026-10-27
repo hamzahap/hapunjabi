@@ -1,10 +1,12 @@
 /**
  * Homepage content.
  *
- * The terminal (projects.js) has the long project write-ups. These are the
- * short ones, written for someone skimming, plus the 9 × 9 sprite each project
- * gets on the index. Same ground rule as projects.js: every claim has to
- * survive someone opening the repo.
+ * The terminal (projects.js) has its own write-ups, in its own voice. These
+ * are the homepage's, written for someone skimming, plus the 9 × 9 sprite each
+ * project gets on the index. A project page here says everything the homepage
+ * has to say about it, so its links go out to the thing itself (Steam, a repo,
+ * an essay), never to the terminal for the rest. Same ground rule as
+ * projects.js: every claim has to survive someone opening the repo.
  *
  * Writing is the exception: the essays and logs in site.js are read in full
  * on the homepage, so they are imported here rather than linked to.
@@ -17,7 +19,6 @@ import { blockArena, isOut } from './releases.js'
 import { certifications } from './work.js'
 import { stackEntries, logs } from './site.js'
 
-const T = '/terminal/#'
 const GH = 'https://github.com/hamzahap/'
 const arenaOut = isOut(blockArena)
 
@@ -32,17 +33,15 @@ export const homeProjects = [
     status: arenaOut ? 'shipped' : 'soon',
     statusLabel: arenaOut ? null : `Out ${blockArena.label}`,
     kicker: arenaOut ? 'Game · 2026 · on Steam' : `Game · on Steam ${blockArena.date}`,
-    desc: `${blockArena.name} is a fast, readable party shooter: up to twelve cube robots on one grid, one shot each and then a reload. Up to eight people share one screen on any mix of gamepads and keyboards, the rest join online through Steam, and bots fill the empty seats.`,
+    desc: `${blockArena.name} is a fast, readable party shooter: up to twelve cube robots on one grid, one shot each and then a reload. Up to eight people share one screen on any mix of gamepads and keyboards, the rest join through Steam or the local network, and bots fill the empty seats.`,
     notes: [
-      'Six modes, from Capture the Flag and King of the Hill to Juggernaut and Gun Game, across 13 arenas in seven venues.',
+      'Six modes, from Capture the Flag and King of the Hill to Juggernaut and Gun Game, across 13 arenas in seven venues. The last is a Warp Lab of portals, conveyor belts and laser gates.',
+      'Bots on three difficulties play every mode properly: they take the flag, hold the hill and hunt the Juggernaut.',
       'Windows and Mac players share Steam lobbies, and a player who drops out rejoins into the same seat.',
-      "The music and sound effects are synthesised by the game's own code.",
+      "Ten robots to unlock, 31 achievements, every control rebindable, and music and sound effects synthesised by the game's own code.",
     ],
     stack: 'Godot 4 · GDScript · Steamworks · Local and online multiplayer',
-    links: [
-      { label: arenaOut ? 'Get it on Steam ↗' : 'Wishlist on Steam ↗', url: blockArena.steam },
-      { label: 'More in the terminal →', url: T + 'open/block-arena' },
-    ],
+    links: [{ label: arenaOut ? 'Get it on Steam ↗' : 'Wishlist on Steam ↗', url: blockArena.steam }],
     icon: [
       '...b.....',
       '.wwwww...',
@@ -64,14 +63,12 @@ export const homeProjects = [
     status: 'shipped',
     desc: 'A one-touch precision runner built around the retry loop: 20 themed chapters, 600 levels, and difficulty that climbs without turning unfair. Shipped end to end, store review included.',
     notes: [
-      'Late-jump buffering and a safe intro, so the difficulty comes from the level and not from input latency.',
-      'AdMob with Google UMP consent gating, and a one-time purchase to remove ads.',
+      'Late-jump buffering and a three-second safe intro, so the difficulty comes from the level and not from input latency.',
+      'Rewarded-ad revives for a second wind, manual or automatic retry, and settings for sound, music and haptics.',
+      'AdMob with Google UMP consent gating, a one-time purchase to remove ads, and the app-ads.txt record and privacy policy that store review asks for.',
     ],
     stack: 'Mobile · AdMob · Google UMP · In-app purchases',
-    links: [
-      { label: 'Game page ↗', url: 'https://hamzahap.github.io/breakline/' },
-      { label: 'More in the terminal →', url: T + 'open/breakline' },
-    ],
+    links: [{ label: 'Game page ↗', url: 'https://hamzahap.github.io/breakline/' }],
     icon: [
       '.........',
       '.dd..aa..',
@@ -94,14 +91,12 @@ export const homeProjects = [
     playable: true,
     desc: 'Claim the lines, watch the pattern bloom. Draw the last edge of a cell to claim it, and closing a shape chains your turn. Pass-and-play for 2 to 8 players, or solo against the Pulse AI, across five board shapes that share one rule set.',
     notes: [
-      'Ads stay on menus and results screens, never mid-game.',
       'Square, triangle, hex, diamond and crown boards change the strategy without changing the rules.',
+      'Touch-friendly boards with haptics, and a score that stays readable from the title screen to the last line.',
+      'Ads stay on menus and results screens, never mid-game, and a one-time purchase removes them.',
     ],
     stack: 'Mobile · Game AI · AdMob · In-app purchases',
-    links: [
-      { label: 'Game page ↗', url: 'https://hamzahap.github.io/edgebloom/' },
-      { label: 'More in the terminal →', url: T + 'open/edgebloom' },
-    ],
+    links: [{ label: 'Game page ↗', url: 'https://hamzahap.github.io/edgebloom/' }],
     icon: [
       'wwwwwwwww',
       'waaawbbbw',
@@ -149,11 +144,12 @@ export const homeProjects = [
     status: 'building',
     desc: 'A co-op top-down roguelite about a crew of dungeon cleaners surviving a cursed night shift, armed with mops, vacuums and sprays against supernatural filth. Cleanliness is a real mechanic, not set dressing.',
     notes: [
-      'Wave survival, per-room objectives, shop upgrades and bosses, plus an endless overtime mode.',
+      'Wave survival, per-room objectives, shop upgrades and bosses, plus achievements and an endless overtime mode for runs that refuse to end.',
+      'Filth and cleanliness drive the state of each room, not just the score.',
       'Enemy spawning built for performance, because waves plus co-op is where these games usually fall over.',
     ],
     stack: 'Godot · GDScript · Local co-op · Pixel art',
-    links: [{ label: 'More in the terminal →', url: T + 'open/graveyard-shift' }],
+    links: [],
     icon: [
       '...www...',
       '.wwwwwww.',
@@ -176,10 +172,11 @@ export const homeProjects = [
     desc: 'Original fantasy tactics with turn-based, grid-based battles. Pick an academy house (Pyrelume, Verdantis, Aethercrest or Duskwoven) and win on positioning, shrine control and mana rather than raw stats.',
     notes: [
       'Scout, bruiser, caster, tank and support roles give each house its own rhythm.',
+      'Handcrafted arenas built around the shrines, because holding them is how a battle is won.',
       'A data-driven art pipeline feeds sprites, terrain, props and effects into the battle systems.',
     ],
     stack: 'Godot · GDScript · Turn-based tactics · Pixel art',
-    links: [{ label: 'More in the terminal →', url: T + 'open/arcabeasts' }],
+    links: [],
     icon: [
       'w.......w',
       'ww.....ww',
@@ -202,7 +199,7 @@ export const homeProjects = [
     desc: 'A fast multiplayer survival game on a grid arena. Runners try to stay alive while a snake, played by another person or by AI, hunts them down. Every catch makes the snake longer, so each round escalates on its own.',
     notes: ['No timer needed: the growing snake is what forces the ending.'],
     stack: 'Unity · C# · Multiplayer · AI opponent',
-    links: [{ label: 'More in the terminal →', url: T + 'open/snakes' }],
+    links: [],
     icon: [
       '.........',
       '..gggggg.',
@@ -225,7 +222,7 @@ export const homeProjects = [
     desc: 'A 2D game written from scratch in C++ on SFML as a university group project, with collision, inventory, progression, custom shaders and NPC behaviour, plus a level editor so levels could be authored instead of hard-coded.',
     notes: ['The level editor mattered more than any single gameplay feature.'],
     stack: 'C++ · SFML · GLSL',
-    links: [{ label: 'More in the terminal →', url: T + 'open/blood2d' }],
+    links: [],
     icon: [
       '.......ww',
       '......www',
@@ -273,15 +270,22 @@ export const homeProjects = [
     year: '2026',
     status: 'building',
     desc: 'Mobile and desktop companions for watching and steering AI coding sessions remotely: live activity, change review, action approval and follow-up prompts. Code, terminal access and credentials never leave the developer machine.',
+    // Two apps under one entry, so the page names each of them.
+    parts: [
+      {
+        name: 'ClaudeCompanion',
+        text: 'For Claude Code. Follow the live session, steer it with prompts, and review its changes before you approve them. The phone is a remote control, not a second copy of the repo.',
+      },
+      {
+        name: 'CodexCompanion',
+        text: 'For Codex, from a phone or a second desktop. Three tiers, one trust boundary: a Flutter client, a Rust bridge on the machine that holds everything sensitive, and a thin Cloudflare backend that never sees the code.',
+      },
+    ],
     notes: [
-      'Three tiers, one trust boundary: a Flutter client, a Rust desktop bridge that holds everything sensitive, and a thin Cloudflare backend.',
       'Per-machine trusted-device pairing and session reconnection, with several computers managed from one app.',
     ],
     stack: 'Flutter · Dart · Rust · Cloudflare Workers',
-    links: [
-      { label: 'ClaudeCompanion →', url: T + 'open/claudecompanion' },
-      { label: 'CodexCompanion →', url: T + 'open/codexcompanion' },
-    ],
+    links: [],
     icon: [
       '..wwwww..',
       '..w...w..',
@@ -354,13 +358,13 @@ export const homeProjects = [
     year: '2026',
     status: 'shipped',
     playable: true,
-    desc: 'A seeded Catan board generator that lives in the terminal: the base game, all nine Seafarers scenarios, Cities & Knights and Traders & Barbarians, for 3 to 6 players, with how-to-play rules for each scenario.',
+    desc: 'A seeded Catan board generator: the base game, all nine Seafarers scenarios, Cities & Knights and Traders & Barbarians, for 3 to 6 players, with how-to-play rules for each scenario.',
     notes: [
       'Four balance modes, from beginner, which enforces every fairness rule, to chaos, which is a straight shuffle. Individual rules can be pinned on top.',
       'Boards are seeded, so everyone at the table opens the same map from one link.',
     ],
     stack: 'React · JavaScript',
-    links: [{ label: 'Open the generator →', url: T + 'catan' }],
+    links: [{ label: 'Open the generator →', url: '#play/catan' }],
     icon: [
       '....a....',
       '..aaaaa..',
