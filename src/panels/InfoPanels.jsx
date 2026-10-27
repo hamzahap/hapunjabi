@@ -2,6 +2,7 @@ import { Panel, Tags, Bullets, Out, Stats } from './Panel.jsx'
 import { profile, asciiArt, stats } from '../data/profile.js'
 import { work, education, certifications } from '../data/work.js'
 import { skills } from '../data/skills.js'
+import { blockArena, isOut } from '../data/releases.js'
 
 function Timeline({ items }) {
   return (
@@ -50,10 +51,15 @@ export function EducationPanel() {
               <span className="bold">{c.name}</span>
             </div>
             <div className="faint" style={{ paddingLeft: '1.5ch' }}>
-              {c.issuer} · {c.date} ·{' '}
-              <a href={c.url} target="_blank" rel="noopener noreferrer">
-                verify ↗
-              </a>
+              {c.issuer} · {c.date}
+              {c.url && (
+                <>
+                  {' · '}
+                  <a href={c.url} target="_blank" rel="noopener noreferrer">
+                    verify ↗
+                  </a>
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -122,8 +128,13 @@ export function NeofetchPanel({ projectCount }) {
     ['shell', 'hap-os 2.0.4'],
     ['kernel', '.NET · Node · Flutter'],
     ['projects', `${projectCount} indexed`],
-    ['shipped', 'The Rugby App · Breakline · EdgeBloom'],
-    ['certs', 'AWS SA – Associate'],
+    [
+      'shipped',
+      ['The Rugby App', 'Breakline', 'EdgeBloom', ...(isOut(blockArena) ? ['Block Arena'] : [])].join(
+        ' · '
+      ),
+    ],
+    ['certs', 'AWS SA – Associate (Professional in progress)'],
     ['contact', profile.email],
   ]
   return (
@@ -162,15 +173,16 @@ export function AboutPanel() {
         <a href="https://allthingsrugby.com/" target="_blank" rel="noopener noreferrer">
           All Things Rugby
         </a>{' '}
-        and The Rugby App — live scores, stats, highlights and editorial for 50k+ downloads. That
+        and The Rugby App — live scores, stats, highlights and editorial for 100k+ downloads. That
         means high-throughput REST APIs over messy third-party providers, an internal CRM that lets
         editors override anything a provider gets wrong, and a growing set of AI agents that write
         the daily brief and watch the data feeds for me.
       </p>
       <p className="dim">
-        Nights and weekends: I ship mobile games under the hkinggames name, and I build local-first
-        tooling for coding agents — orchestrators, context optimizers, audit loops. Mostly because
-        I got tired of agents that stop three-quarters of the way through the job.
+        Nights and weekends: I make games under the hkinggames name — Breakline and EdgeBloom on
+        mobile, Hking&apos;s Block Arena on Steam — and I build local-first tooling for coding
+        agents: orchestrators, context optimizers, audit loops. Mostly because I got tired of
+        agents that stop three-quarters of the way through the job.
       </p>
       <p className="faint">
         Try <span className="accent">projects</span>, <span className="accent">work</span>, or{' '}

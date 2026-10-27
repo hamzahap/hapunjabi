@@ -73,6 +73,16 @@
 
 .titlebar__dot--r {
   background: #ff5f57;
+  border-bottom: none;
+}
+
+.titlebar__home {
+  flex: none;
+  color: var(--fg-dim);
+}
+
+.titlebar__home:hover {
+  color: var(--accent);
 }
 .titlebar__dot--y {
   background: #febc2e;

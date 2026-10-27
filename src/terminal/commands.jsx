@@ -383,6 +383,26 @@ export function buildRegistry() {
       desc: 'Say something back',
       run: (args) => <Out tone="plain">{args.join(' ')}</Out>,
     },
+    {
+      name: 'cd',
+      usage: 'cd /',
+      group: 'Shell',
+      desc: 'Leave the shell for the homepage at hamzahap.dev',
+      run: (args) => {
+        const to = args[0] ?? '~'
+        if (to === '~' || to === '.' || to === '/home/hamzah') return null
+        if (['/', '..', '../', '~/..', '/home'].includes(to)) {
+          window.location.assign('/')
+          return <Out>Leaving for the homepage…</Out>
+        }
+        return (
+          <NotFound
+            what={`cd: ${to}: No such file or directory`}
+            hint="There is one directory here. `cd /` goes back to the homepage."
+          />
+        )
+      },
+    },
 
     // ---------- hidden ----------
     {
@@ -541,7 +561,8 @@ export function buildRegistry() {
       hidden: true,
       run: () => (
         <Out>
-          There is no exit. There is only <span className="accent">contact</span>.
+          There is no exit. There is only <span className="accent">contact</span>, or{' '}
+          <span className="accent">cd /</span> for the homepage.
         </Out>
       ),
     },

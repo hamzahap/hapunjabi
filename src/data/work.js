@@ -6,17 +6,19 @@ export const work = [
     period: 'December 2023 — Present',
     current: true,
     summary:
-      'Own the backend and platform for All Things Rugby and The Rugby App — live scores, stats, highlights and editorial for 50k+ downloads.',
+      'Own the backend and platform for All Things Rugby and The Rugby App — live scores, stats, highlights and editorial for 100k+ downloads.',
     bullets: [
-      'Designed, built and maintain the backend infrastructure behind All Things Rugby and The Rugby App, serving 50k+ downloads with live scores, stats, highlights and news across .NET, SQL, Next.js, Flutter and Firebase.',
+      'Designed, built and maintain the backend infrastructure behind All Things Rugby and The Rugby App, serving 100k+ downloads with live scores, stats, highlights and news across .NET, SQL, Next.js, Flutter and Firebase.',
       'Built high-throughput REST APIs over multiple third-party data providers, reaching 900%+ performance gains through Redis and in-memory caching of player and match data, aggregation and concurrency-safe refresh strategies.',
-      'Designed the Azure cloud architecture and built the Azure DevOps CI/CD pipelines, automating build, test and deployment across the API, worker, scheduler and scraper services.',
       'Architected an internal CRM/admin platform with role-based access for admins and authors, custom tournament management, and full API data override for matches, fixtures, incidents, stats, media and editorial content.',
+      'Automated the editorial content pipeline: scheduled workers ingest news and live match data, match each article to the right matches, teams and news feeds, and generate AI-drafted articles for editors.',
       'Integrated a heavily customized TipTap editor with smart embeds, and shipped an AI article generator with selectable GPT models that drafts reports directly from live match data.',
       'Deployed and configured OpenClaw, an open-source AI assistant, with custom workflows that draft the daily rugby brief — pulling, deduplicating and ranking the latest news across sources into a consistent editorial format for review before publication.',
       'Set up OpenClaw to watch live match feeds through the weekend, flagging inbound third-party data that looks wrong against expected match state so the team is alerted before bad or stale provider data reaches users.',
+      'Designed the Azure cloud architecture and built the Azure DevOps CI/CD pipelines, automating build, test and deployment across the API, worker and scheduler services.',
+      'Built the Next.js web and Flutter mobile frontends, consuming the in-house APIs for live scores, stats, highlights and news.',
     ],
-    tech: ['.NET', 'C#', 'SQL', 'Redis', 'Next.js', 'Flutter', 'Firebase', 'Azure', 'Azure DevOps', 'Docker', 'REST'],
+    tech: ['.NET', 'C#', 'SQL', 'Redis', 'Next.js', 'Flutter', 'Firebase', 'TipTap', 'OpenAI API', 'Azure', 'Azure DevOps', 'Docker', 'REST'],
   },
   {
     role: 'Software Developer',
@@ -57,5 +59,11 @@ export const certifications = [
     issuer: 'Amazon Web Services Training and Certification',
     date: 'October 2023',
     url: 'https://www.credly.com/badges/1769a415-88da-4445-9447-f92b9ae73337/public_url',
+  },
+  {
+    name: 'AWS Certified Solutions Architect – Professional',
+    issuer: 'Amazon Web Services Training and Certification',
+    date: 'in progress, target 2026',
+    url: null,
   },
 ]

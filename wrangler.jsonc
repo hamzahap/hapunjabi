@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // hamzahap.dev: the homepage at /, the terminal at /terminal/.
+  // Static files only. There is no Worker script, so every request is served
+  // straight from Cloudflare's asset store.
+  "name": "hamzahap-dev",
+  "compatibility_date": "2026-10-27",
+  "assets": {
+    "directory": "./dist",
+    // /terminal redirects to /terminal/, which serves dist/terminal/index.html.
+    "html_handling": "auto-trailing-slash",
+    // Unknown paths get dist/404.html with a real 404 status.
+    "not_found_handling": "404-page"
+  },
+  // Deploying attaches the domain: Cloudflare creates the DNS record and the
+  // certificate. www lives in deploy/www and redirects here.
+  "routes": [{ "pattern": "hamzahap.dev", "custom_domain": true }],
+  // No second copy of the site on *.workers.dev, and no prompt to register a
+  // workers.dev subdomain on the first deploy.
+  "workers_dev": false,
+  "preview_urls": false
+}

@@ -1,28 +1,39 @@
 /** Personality: fortunes, jokes, and the things a real shell has that a portfolio doesn't. */
 
-export const fortunes = [
+import { blockArena, isOut } from './releases.js'
+
+/** Opinions anyone who writes software will recognise. The homepage draws only from these. */
+export const generalFortunes = [
+  'The agent stopped at 80% and told you it was finished. It always does.',
   'Caching is just remembering things badly, on purpose, very fast.',
   'The bug was never in the code you were reading.',
   'Every "temporary" workaround outlives the system it was working around.',
-  'A provider API is a promise made by someone who has already left the company.',
   'Naming things is hard. Renaming things across four services is harder.',
-  'Nothing focuses the mind like a live match and a wrong scoreline.',
   'You do not have a caching problem. You have an invalidation problem.',
   '"It works on my machine" is a statement about your machine.',
-  'The agent stopped at 80% and told you it was finished. It always does.',
   'Estimates are just hopes wearing a suit.',
   'Any sufficiently advanced configuration file is indistinguishable from a programming language.',
-  'The scoreboard is never wrong. The feed is frequently wrong.',
   'Write the test that would have caught it, not the test that proves it is fixed.',
-  'Ship it Friday and you will learn what your alerting actually covers.',
   'The best error message is the one that tells you which of your assumptions was wrong.',
   'Documentation is a love letter you write to your future self at 3am.',
+]
+
+/** The day job leaking through. Terminal only. */
+const workFortunes = [
+  'A provider API is a promise made by someone who has already left the company.',
+  'Nothing focuses the mind like a live match and a wrong scoreline.',
+  'The scoreboard is never wrong. The feed is frequently wrong.',
+  'Ship it Friday and you will learn what your alerting actually covers.',
   'There are two hard problems in sports data: timezones, and everything else.',
 ]
 
+export const fortunes = [...generalFortunes, ...workFortunes]
+
 export const motd = [
   'Currently: backend and platform work at All Things Rugby, Doha.',
-  'Shipping mobile games under hkinggames on the side.',
+  isOut(blockArena)
+    ? `${blockArena.name} is out on Steam. Try \`open block-arena\`.`
+    : `${blockArena.name} lands on Steam on ${blockArena.date}. Try \`open block-arena\`.`,
   'Open to interesting problems — try `contact`.',
 ]
 

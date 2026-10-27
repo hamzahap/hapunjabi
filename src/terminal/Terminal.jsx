@@ -468,10 +468,20 @@ export default function Terminal() {
       </h1>
       <div className="titlebar">
         <div className="titlebar__dots" aria-hidden="true">
-          <span className="titlebar__dot titlebar__dot--r" />
+          {/* Closing the window takes you back to the homepage. Mouse-only
+              garnish: the visible "home" link next to it is the real way out. */}
+          <a
+            className="titlebar__dot titlebar__dot--r"
+            href="/"
+            tabIndex={-1}
+            title="Close the terminal"
+          />
           <span className="titlebar__dot titlebar__dot--y" />
           <span className="titlebar__dot titlebar__dot--g" />
         </div>
+        <a className="titlebar__home" href="/">
+          ← home
+        </a>
         <div className="titlebar__title">
           {PROMPT_USER}: {PROMPT_PATH} — {profile.name}
         </div>

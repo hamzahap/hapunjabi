@@ -9,7 +9,7 @@ export const skills = [
   },
   {
     label: 'Frontend & Mobile',
-    items: ['React', 'Next.js', 'Flutter', 'React Native', 'Vite', 'Electron'],
+    items: ['React', 'Next.js', 'Flutter', 'React Native', 'TipTap', 'Vite', 'Electron'],
   },
   {
     label: 'Data',
@@ -17,15 +17,23 @@ export const skills = [
   },
   {
     label: 'Cloud & DevOps',
-    items: ['AWS', 'Azure DevOps', 'Docker', 'Kubernetes', 'CI/CD pipelines', 'GitHub Actions'],
+    items: ['AWS', 'Azure', 'Azure DevOps', 'Docker', 'Kubernetes', 'CI/CD pipelines', 'GitHub Actions', 'Cloudflare Workers'],
   },
   {
-    label: 'AI & Tooling',
-    items: ['LLM orchestration', 'Agent pipelines', 'Prompt engineering', 'OpenAI API', 'Claude API'],
+    label: 'AI & Automation',
+    items: [
+      'LLM orchestration',
+      'Agent pipelines',
+      'LLM content generation',
+      'OpenClaw workflows',
+      'Scheduled workers',
+      'OpenAI API',
+      'Claude API',
+    ],
   },
   {
     label: 'Games',
-    items: ['Unity', 'Godot', 'SFML', 'Game loop design', 'Local multiplayer', 'AdMob'],
+    items: ['Godot', 'Unity', 'SFML', 'Steamworks', 'Game loop design', 'Local multiplayer', 'AdMob'],
   },
   {
     label: 'Practice',

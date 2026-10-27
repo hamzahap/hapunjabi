@@ -6,16 +6,19 @@
  * Overselling reads worse than a modest, accurate description.
  */
 
+import { blockArena, isOut } from './releases.js'
+
 export const CATEGORIES = ['professional', 'ai-tooling', 'games', 'data', 'tools', 'academic']
 
 const GH = 'https://github.com/hamzahap'
+const arenaOut = isOut(blockArena)
 
 export const projects = [
   // ---------------------------------------------------------------- hero
   {
     slug: 'rugby-platform',
     name: 'All Things Rugby / The Rugby App',
-    tagline: 'Live scores, stats and editorial for 50k+ downloads. The day job.',
+    tagline: 'Live scores, stats and editorial for 100k+ downloads. The day job.',
     year: '2023 — present',
     tier: 'hero',
     category: 'professional',
@@ -25,8 +28,9 @@ export const projects = [
     highlights: [
       'Reached 900%+ throughput gains on the hot paths through in-memory caching, aggregation and concurrency-safe refresh, rather than by scaling hardware.',
       'Built an internal CRM/admin platform with role-based access for admins and authors, custom tournament management, and full override of provider data for matches, fixtures, incidents, stats and media.',
+      'Automated the editorial pipeline: scheduled workers ingest news and live match data, match each article to the right matches, teams and feeds, and hand editors AI-drafted articles.',
       'Integrated a heavily customized TipTap editor with smart embeds, plus an AI article generator with selectable GPT models that drafts match reports from live data.',
-      'Runs on Azure DevOps pipelines with Docker, across API, worker, scheduler and scraper services.',
+      'Runs on Azure DevOps pipelines with Docker, across API, worker and scheduler services.',
     ],
     tech: ['.NET', 'C#', 'SQL', 'Next.js', 'Flutter', 'Firebase', 'Docker', 'Azure DevOps'],
     links: [
@@ -240,17 +244,24 @@ export const projects = [
   },
   {
     slug: 'block-arena',
-    name: "Hking's Block Arena",
-    tagline: 'Quick chaotic PvP matches with friends and a hostile environment.',
+    name: blockArena.name,
+    tagline: arenaOut
+      ? 'Couch-first party shooter for up to twelve cube robots. Out now on Steam.'
+      : `Couch-first party shooter for up to twelve cube robots. On Steam ${blockArena.date}.`,
     year: '2026',
-    tier: 'minor',
+    tier: 'hero',
     category: 'games',
-    status: 'in progress',
+    status: arenaOut ? 'released' : `releasing ${blockArena.date}`,
     description:
-      'A multiplayer arena game built for short, chaotic co-op PvP matches. Simple to pick up and competitive underneath, with the environment as a weapon — most of the memorable moments come from players using the arena against each other rather than from mechanical depth.',
-    highlights: [],
-    tech: ['Unity', 'C#', 'Multiplayer', 'Arena PvP'],
-    links: [],
+      'A party shooter for 2 to 12 players: chunky cube robots on one grid of crates and lanes, one shot and then a reload, so every shot is a decision. Up to eight people play on one PC with any mix of gamepads and keyboards, the rest join online through Steam lobbies or the local network, and bots on three difficulties fill the empty seats.',
+    highlights: [
+      'Six modes: Free-for-All, Team Deathmatch, Capture the Flag, King of the Hill, Juggernaut and Gun Game, across 13 arenas in seven venues — the last one a Warp Lab with portals, conveyor belts and laser gates.',
+      "Couch and online mix freely: four on a sofa against three at a friend's place, with bots for the rest. Windows and Mac play together, and a dropped player rejoins into the same seat.",
+      'The bots play every mode properly: they take the flag, hold the hill and hunt the Juggernaut.',
+      "Ten robots to unlock, 31 achievements, every control rebindable, and music and sound effects synthesised by the game's own code.",
+    ],
+    tech: ['Godot 4', 'GDScript', 'Steamworks', 'Online multiplayer', 'Local multiplayer', 'Bots'],
+    links: [{ label: arenaOut ? 'Steam' : 'Wishlist on Steam', url: blockArena.steam }],
   },
   {
     slug: 'querypilot',
@@ -481,13 +492,16 @@ export const projects = [
     category: 'tools',
     status: 'active',
     description:
-      'A React and Vite single page app that boots as a shell. Commands are a small registry with their own tab-completion handlers, output blocks are React nodes rather than strings, so a command can return a full interactive panel or an SVG architecture diagram. History, completion, themes and deep links are all handled in about 400 lines of terminal code.',
+      'A React and Vite app that boots as a shell, and the /terminal half of hamzahap.dev; the homepage is the same data laid out as a page. Commands are a small registry with their own tab-completion handlers, output blocks are React nodes rather than strings, so a command can return a full interactive panel or an SVG architecture diagram. History, completion, themes and deep links are all handled in about 400 lines of terminal code.',
     highlights: [
-      'Try: ls, cat about.txt, theme amber, or arch.',
+      'Try: ls, cat about.txt, theme amber, or arch. `cd /` leaves for the homepage.',
       'Deep links work — anything after the # runs as a command on load.',
     ],
-    tech: ['React', 'Vite', 'JavaScript', 'CSS'],
-    links: [{ label: 'Repo', url: `${GH}/hapunjabi` }],
+    tech: ['React', 'Vite', 'JavaScript', 'CSS', 'Cloudflare'],
+    links: [
+      { label: 'Homepage', url: 'https://hamzahap.dev/' },
+      { label: 'Repo', url: `${GH}/hapunjabi` },
+    ],
   },
 ]
 
@@ -520,7 +534,9 @@ const PROC = {
   'graveyard-shift': { pid: 14, stat: 'R', cpu: 34.0, uptime: '3mo' },
   arcabeasts: { pid: 15, stat: 'R', cpu: 29.5, uptime: '2mo' },
   snakes: { pid: 16, stat: 'R', cpu: 11.0, uptime: '2mo' },
-  'block-arena': { pid: 17, stat: 'R', cpu: 7.5, uptime: '2mo' },
+  'block-arena': arenaOut
+    ? { pid: 17, stat: 'S', cpu: 14.0, uptime: '6mo' }
+    : { pid: 17, stat: 'R', cpu: 52.0, uptime: '6mo' },
   tasktracker: { pid: 12, stat: 'R', cpu: 9.5, uptime: '0d' },
   bookmanagement: { pid: 13, stat: 'R', cpu: 8.2, uptime: '0d' },
   aoc2025: { pid: 21, stat: 'T', cpu: 0.4, uptime: '7mo' },

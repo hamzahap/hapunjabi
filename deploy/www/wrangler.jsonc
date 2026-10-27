@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // www.hamzahap.dev -> hamzahap.dev. A separate Worker so the main site stays
+  // static files only. Deploy with `npm run deploy:www`; it rarely changes.
+  "name": "hamzahap-dev-www",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-27",
+  "routes": [{ "pattern": "www.hamzahap.dev", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false
+}

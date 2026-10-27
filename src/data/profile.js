@@ -1,3 +1,5 @@
+import { blockArena, isOut } from './releases.js'
+
 export const profile = {
   name: 'Hamzah Punjabi',
   handle: 'hamzahap',
@@ -7,14 +9,16 @@ export const profile = {
   email: 'hamzahqatar123@gmail.com',
   github: 'https://github.com/hamzahap',
   linkedin: 'https://www.linkedin.com/in/hamzahpunjabi/',
+  site: 'https://hamzahap.dev',
   gamesSite: 'https://hamzahap.github.io/',
-  resumePath: './HamzahPunjabi_Resume.pdf',
-  transcriptPath: './FinalOfficialTranscript.pdf',
+  // Root-relative: the same paths work from the homepage and from /terminal/.
+  resumePath: '/HamzahPunjabi_Resume.pdf',
+  transcriptPath: '/FinalOfficialTranscript.pdf',
 }
 
 export const stats = [
-  { num: '50k+', label: 'app downloads' },
-  { num: '2', label: 'games shipped' },
+  { num: '100k+', label: 'app downloads' },
+  { num: isOut(blockArena) ? '3' : '2', label: 'games shipped' },
   { num: '5 yrs', label: 'building software' },
   { num: 'AWS', label: 'SA – Associate' },
 ]

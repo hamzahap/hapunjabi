@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moved to hamzahap.dev</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://hamzahap.dev/" />
+    <script>
+      // hamzahap.github.io/hapunjabi moved to hamzahap.dev. Old links keep working:
+      //   /hapunjabi/                          -> hamzahap.dev/
+      //   /hapunjabi/#open/breakline           -> hamzahap.dev/terminal/#open/breakline
+      //   /hapunjabi/HamzahPunjabi_Resume.pdf  -> hamzahap.dev/HamzahPunjabi_Resume.pdf
+      // The old site was the terminal, so a bare #command belongs to /terminal/.
+      // This same file is the 404 page, which is how the PDF paths get here.
+      ;(function () {
+        var path = location.pathname.replace(/^\/hapunjabi\/?/, '/')
+        if (path === '/' && location.hash) path = '/terminal/'
+        location.replace('https://hamzahap.dev' + path + location.search + location.hash)
+      })()
+    </script>
+    <noscript><meta http-equiv="refresh" content="0; url=https://hamzahap.dev/" /></noscript>
+    <style>
+      body {
+        margin: 0;
+        padding: 3rem 1.5rem;
+        background: #f6f5f1;
+        color: #1c1c1a;
+        font: 18px/1.5 system-ui, sans-serif;
+      }
+      a {
+        color: #0b6e3f;
+      }
+    </style>
+  </head>
+  <body>
+    <p>This site moved to <a href="https://hamzahap.dev/">hamzahap.dev</a>.</p>
+  </body>
+</html>
