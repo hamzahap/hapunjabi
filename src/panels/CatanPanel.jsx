@@ -8,7 +8,7 @@ import {
   DESERT_STATES,
   randomSeed,
 } from '../catan/generator.js'
-import { GAMES, SCENARIOS, TERRAIN, RESOURCES, RESOURCE_COLOR, frameOptions } from '../catan/layouts.js'
+import { GAMES, SCENARIOS, TERRAIN, RESOURCES, RESOURCE_COLOR } from '../catan/layouts.js'
 import { TerrainIcon, Token, Robber, Pirate } from './CatanArt.jsx'
 import { HowToPlay } from './CatanRules.jsx'
 
@@ -53,7 +53,10 @@ const SCENARIO_ALIASES = {
   world: 'newworld',
 }
 const SETUP_ALIASES = { printed: 'printed', fixed: 'printed', shuffled: 'variable', variable: 'variable' }
-const FRAME_RE = /^frame-([rm][0-5])$/
+// Links from before the frame was drawn could say how to turn or mirror it.
+// The frame only fits one way, so those words are read and ignored, rather
+// than mistaken for the seed.
+const OLD_FRAME_TOKEN = /^frame-[rm][0-5]$/
 const MODE_ALIASES = {
   beginner: 'beginner',
   easy: 'beginner',
@@ -110,7 +113,6 @@ export const CATAN_TOKENS = Array.from(
     ...Object.keys(MODE_ALIASES),
     ...Object.keys(SCENARIO_ALIASES),
     ...Object.keys(SETUP_ALIASES),
-    ...frameOptions(4).map((f) => `frame-${f}`),
     ...RULE_TOKENS,
     '4',
     '6',
@@ -121,7 +123,7 @@ export const CATAN_TOKENS = Array.from(
 
 /** `catan seafarers 6 strategy 68-touch k3x9pq` in any order; the first unknown token is the seed. */
 export function parseCatanArgs(args = []) {
-  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {}, scenario: 'shores', setup: 'variable', frame: 'r0' }
+  const out = { game: 'base', players: 4, mode: 'advanced', seed: null, rules: {}, scenario: 'shores', setup: 'variable' }
   for (const raw of args) {
     const t = raw.toLowerCase().replace(/^--/, '')
     const dash = t.indexOf('-')
@@ -133,7 +135,7 @@ export function parseCatanArgs(args = []) {
     else if (PLAYER_ALIASES[t]) out.players = PLAYER_ALIASES[t]
     else if (SCENARIO_ALIASES[t]) out.scenario = SCENARIO_ALIASES[t]
     else if (SETUP_ALIASES[t]) out.setup = SETUP_ALIASES[t]
-    else if (FRAME_RE.test(t)) out.frame = FRAME_RE.exec(t)[1]
+    else if (OLD_FRAME_TOKEN.test(t)) continue
     else if (rule && rule.states.includes(state)) out.rules[rule.key] = state
     else if (!out.seed && /^[\w.-]{1,24}$/.test(t)) out.seed = t
   }
@@ -282,13 +284,84 @@ function Mark({ mark, cells }) {
   )
 }
 
+const FRAME_SEA = '#2b6aa3'
+const FRAME_SHORT = '#6aa6dc'
+const FRAME_EDGE = '#173f63'
+const pts = (list) => list.map((q) => `${(q.x * R).toFixed(1)},${(q.y * R).toFixed(1)}`).join(' ')
+
+/**
+ * The printed frame as the pieces really go together: each piece a band from
+ * the coast to the outer edge, the 5–6 extension's short pieces paler, and a
+ * seam at every joint. Drawn first, so the hexes cover its inner zigzag.
+ */
+function Frame({ frame }) {
+  return (
+    <g>
+      {frame.pieces.map((p, i) => (
+        <polygon key={i} points={pts(p.points)} fill={p.kind === 'short' ? FRAME_SHORT : FRAME_SEA}>
+          <title>
+            {p.kind === 'short'
+              ? `short piece from the 5–6 extension, slotted into joint ${p.joint}`
+              : `frame piece between joints ${p.n === 6 ? 1 : p.n + 1} and ${p.n}`}
+          </title>
+        </polygon>
+      ))}
+      <polygon points={pts(frame.outline)} fill="none" stroke={FRAME_EDGE} strokeWidth="2" strokeLinejoin="round" />
+      {frame.joints.map((j, i) => (
+        <line
+          key={i}
+          x1={(j.x * R).toFixed(1)}
+          y1={(j.y * R).toFixed(1)}
+          x2={(j.ox * R).toFixed(1)}
+          y2={(j.oy * R).toFixed(1)}
+          stroke="#eaf2fa"
+          strokeWidth="1.8"
+        />
+      ))}
+    </g>
+  )
+}
+
+/**
+ * The number printed at each joint, on top of everything so nothing hides it.
+ * It sits where the seam meets the outer edge, like the jigsaw tab on the
+ * real pieces, which keeps it clear of the harbour boxes mid-frame.
+ */
+function JointLabels({ frame }) {
+  return frame.joints.map((j, i) => {
+    const x = j.ox * R
+    const y = j.oy * R
+    return (
+      <g key={i} transform={`translate(${x.toFixed(1)},${y.toFixed(1)})`}>
+        <title>{`joint ${j.label}: the pieces meeting here both read ${j.label}`}</title>
+        <rect x="-8" y="-8" width="16" height="16" rx="3.5" fill={FRAME_EDGE} stroke="#f6ebd0" strokeWidth="1.2" />
+        <text y="3.6" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#f6ebd0">
+          {j.label}
+        </text>
+      </g>
+    )
+  })
+}
+
 function Board({ board, showSpots }) {
   const { cells, harbors, geometry, stats } = board
-  const { verts, pirate } = geometry
+  const { verts, pirate, frame } = geometry
   const marks = geometry.layout.marks || []
-  const xs = cells.map((c) => c.x).concat(harbors.map((h) => h.x))
-  const ys = cells.map((c) => c.y).concat(harbors.map((h) => h.y))
-  const pad = 1.15
+  // A drawn frame sets the board's extent; harbour boxes are counted too in
+  // case one sits close to a corner of it.
+  const xs = frame
+    ? frame.outline.map((q) => q.x).concat(harbors.flatMap((h) => [h.x - 0.5, h.x + 0.5]))
+    : cells.map((c) => c.x).concat(harbors.map((h) => h.x))
+  const ys = frame
+    ? frame.outline.map((q) => q.y).concat(harbors.flatMap((h) => [h.y - 0.25, h.y + 0.25]))
+    : cells.map((c) => c.y).concat(harbors.map((h) => h.y))
+  // With a frame, leave room for the joint numbers that straddle its edge.
+  const pad = frame ? 0.3 : 1.15
+  // The width a stylesheet may refuse to shrink below (see .hc .catan__svg).
+  // For a framed board that is the hexes alone, so the base island still fits
+  // a narrow phone rather than scrolling sideways.
+  const legibleXs = frame ? cells.map((c) => c.x) : cells.map((c) => c.x).concat(harbors.map((h) => h.x))
+  const legibleW = (Math.max(...legibleXs) - Math.min(...legibleXs) + 2.3) * R
   const minX = (Math.min(...xs) - pad) * R
   const maxX = (Math.max(...xs) + pad) * R
   const minY = (Math.min(...ys) - pad) * R
@@ -297,11 +370,11 @@ function Board({ board, showSpots }) {
     <svg
       className="catan__svg"
       viewBox={`${minX.toFixed(0)} ${minY.toFixed(0)} ${(maxX - minX).toFixed(0)} ${(maxY - minY).toFixed(0)}`}
-      // The board's own width, for a stylesheet that won't shrink it past legible.
-      style={{ '--board-w': Math.round(maxX - minX) }}
+      style={{ '--board-w': Math.round(legibleW) }}
       role="img"
       aria-label="Generated Catan board"
     >
+      {frame && <Frame frame={frame} />}
       {cells.map((c) => (
         <Hex key={c.id} cell={c} pirate={pirate === c.id} robber={board.robber === c.id} />
       ))}
@@ -311,6 +384,7 @@ function Board({ board, showSpots }) {
       {harbors.map((h, i) => (
         <Harbor key={i} h={h} verts={verts} />
       ))}
+      {frame && <JointLabels frame={frame} />}
       {showSpots &&
         stats.spots.map((s, i) => (
           <g key={i} transform={`translate(${s.x * R},${s.y * R})`}>
@@ -380,7 +454,7 @@ function PipRows({ stats, seafarers, scarce }) {
 function Spots({ stats }) {
   return (
     <div>
-      <div className="detail__label">Strongest corners</div>
+      <div className="detail__label">Strongest spots</div>
       <ul className="detail__list">
         {stats.spots.map((s, i) => (
           <li key={i}>
@@ -424,7 +498,7 @@ function Checks({ stats, rules, scenarioRules }) {
     ...(scenarioRules
       ? [{ label: 'scenario rules', ok: stats.scenarioBad === 0, detail: `${stats.scenarioBad} hexes break the scenario set-up advice` }]
       : []),
-    { label: `best corner ${stats.maxSpot} pips`, ok: stats.maxSpot <= 12, detail: 'pips on the strongest corner' },
+    { label: `best spot ${stats.maxSpot} pips`, ok: stats.maxSpot <= 12, detail: 'pips on the strongest settlement spot' },
   ]
   return (
     <div className="catan__checks">
@@ -459,7 +533,6 @@ export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
   const [players, setPlayers] = useState(initial.players || 4)
   const [scenario, setScenario] = useState(initial.scenario || 'shores')
   const [setup, setSetup] = useState(initial.setup || 'variable')
-  const [frame, setFrame] = useState(initial.frame || 'r0')
   const [mode, setModeState] = useState(initial.mode || 'advanced')
   const [rules, setRules] = useState(initial.rules || {})
   // Switching mode drops any pinned rules back to that mode's defaults.
@@ -480,19 +553,10 @@ export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
   const hasPrinted = seafarers && scenario !== 'newworld'
   const effectiveSetup = hasPrinted ? setup : 'variable'
   const layoutKey = layoutKeyFor(game, players, scenario)
-  // The printed frame only matters for base-game boards; Seafarers flips it.
-  const frames = frameOptions(players)
-  const effectiveFrame = seafarers ? 'r0' : frames.includes(frame) ? frame : 'r0'
   const board = useMemo(
-    () =>
-      generateBoard({ layoutKey, modeKey: mode, game, seed, rules, setup: effectiveSetup, frame: effectiveFrame }),
-    [layoutKey, mode, game, seed, rules, effectiveSetup, effectiveFrame]
+    () => generateBoard({ layoutKey, modeKey: mode, game, seed, rules, setup: effectiveSetup }),
+    [layoutKey, mode, game, seed, rules, effectiveSetup]
   )
-  const frameMirror = effectiveFrame[0] === 'm'
-  const frameTurn = Number(effectiveFrame[1])
-  const turnStep = players === 6 ? 3 : 1
-  const setMirror = (m) => setFrame(`${m ? 'm' : 'r'}${frameTurn}`)
-  const turnFrame = () => setFrame(`${frameMirror ? 'm' : 'r'}${(frameTurn + turnStep) % 6}`)
 
   const parts = [
     game,
@@ -500,7 +564,6 @@ export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
     players,
     mode,
     ...(effectiveSetup === 'printed' ? ['printed'] : []),
-    ...(effectiveFrame !== 'r0' ? [`frame-${effectiveFrame}`] : []),
     ...ruleTokens(mode, rules),
     seed,
   ]
@@ -541,39 +604,6 @@ export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
         )}
         <Segment label="players" options={PLAYERS} value={players} onChange={setPlayers} />
         {hasPrinted && <Segment label="setup" options={SETUPS} value={setup} onChange={setSetup} />}
-        {!seafarers && (
-          <div className="catan__row" role="group" aria-label="frame">
-            <span className="catan__rowlabel">frame</span>
-            <button
-              type="button"
-              className="catan__opt"
-              aria-pressed={!frameMirror}
-              title="pieces joined 1 - 6 - 5 - 4 - 3 - 2 clockwise"
-              onClick={() => setMirror(false)}
-            >
-              as printed
-            </button>
-            <button
-              type="button"
-              className="catan__opt"
-              aria-pressed={frameMirror}
-              title="the same pieces joined the other way round the table"
-              onClick={() => setMirror(true)}
-            >
-              mirrored
-            </button>
-            <button
-              type="button"
-              className="btnlink"
-              onClick={turnFrame}
-              title="start the ring one joint further round"
-            >
-              turn {players === 6 ? '180°' : '60°'}
-              {frameTurn ? ` (${frameTurn * 60}°)` : ''}
-            </button>
-            <span className="faint catan__hint">match the harbours to your frame</span>
-          </div>
-        )}
         <Segment
           label="mode"
           options={Object.entries(MODES).map(([id, m]) => ({ id, label: m.label, short: m.short }))}
@@ -633,7 +663,7 @@ export function CatanGenerator({ initial = {}, linkBase, shell = false }) {
               checked={showSpots}
               onChange={(e) => setShowSpots(e.target.checked)}
             />{' '}
-            best corners
+            best spots
           </label>
         </div>
       </div>

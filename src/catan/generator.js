@@ -125,13 +125,133 @@ function makeHarbor(cells, cellVerts, id, i, type) {
   }
 }
 
+// ---------- frame ----------
+
+/**
+ * The coast as a ring of edges, clockwise from the north-west edge of the top
+ * row's first hex. Each edge starts on the vertex the last one ended on, so
+ * the ring follows the shoreline exactly. Null if the coast isn't one loop.
+ */
+export function coastRing(cells, byRC, cellVerts) {
+  const edges = []
+  for (const cell of cells) {
+    for (let i = 0; i < 6; i++) {
+      if (byRC.has(neighborOf(cell.r, cell.c, EDGES[i]).join(','))) continue
+      edges.push({ cell: cell.id, i, va: cellVerts[cell.id][i], vb: cellVerts[cell.id][(i + 1) % 6] })
+    }
+  }
+  const top = cells.reduce((a, b) => (b.r < a.r || (b.r === a.r && b.c < a.c) ? b : a))
+  const from = new Map(edges.map((e) => [e.va, e]))
+  const ring = [edges.find((e) => e.cell === top.id && EDGES[e.i] === 'NW')]
+  while (ring.length < edges.length) {
+    const next = from.get(ring[ring.length - 1].vb)
+    if (!next || next === ring[0]) break
+    ring.push(next)
+  }
+  return ring.length === edges.length ? ring : null
+}
+
+// Outward normals of the frame's outer edge, a flat-topped hexagon: top,
+// upper right, lower right, bottom, lower left, upper left.
+const SIDES = [-90, -30, 30, 90, 150, 210].map((deg) => [
+  Math.cos((deg * Math.PI) / 180),
+  Math.sin((deg * Math.PI) / 180),
+])
+const FRAME_WIDTH = 1 // past the outermost coast vertex, in hex radii
+
+/**
+ * Lay the printed frame's pieces round the coast ring. Returns the harbours
+ * printed on them, and what the board drawing needs: the frame's outer edge,
+ * each piece as a polygon between the coast and that edge, and each joint with
+ * the number printed there. Null if the pieces don't add up to the coast.
+ */
+function buildFrame(pieces, cells, byRC, cellVerts, verts) {
+  const ring = coastRing(cells, byRC, cellVerts)
+  if (!ring || ring.length !== pieces.reduce((s, p) => s + p.len, 0)) return null
+
+  const reach = SIDES.map(
+    ([nx, ny]) => Math.max(...ring.map((e) => verts[e.va].x * nx + verts[e.va].y * ny)) + FRAME_WIDTH
+  )
+  // Corner k is where side k - 1 meets side k.
+  const outline = SIDES.map((_, k) => {
+    const j = (k + 5) % 6
+    const [a1, b1] = SIDES[j]
+    const [a2, b2] = SIDES[k]
+    const det = a1 * b2 - a2 * b1
+    return { x: (reach[j] * b2 - reach[k] * b1) / det, y: (a1 * reach[k] - a2 * reach[j]) / det }
+  })
+
+  // A seam runs straight out from the joint's vertex, away from its hex, to the
+  // outer edge. `pos` is how far round the outline it lands: side index plus
+  // the fraction along that side.
+  const seam = (vi) => {
+    const v = verts[vi]
+    const hx = v.cells.reduce((s, id) => s + cells[id].x, 0) / v.cells.length
+    const hy = v.cells.reduce((s, id) => s + cells[id].y, 0) / v.cells.length
+    const len = Math.hypot(v.x - hx, v.y - hy)
+    const ux = (v.x - hx) / len
+    const uy = (v.y - hy) / len
+    let best = null
+    SIDES.forEach(([nx, ny], k) => {
+      const along = nx * ux + ny * uy
+      if (along <= 1e-9) return
+      const t = (reach[k] - (nx * v.x + ny * v.y)) / along
+      if (!best || t < best.t) best = { t, k }
+    })
+    const ox = v.x + ux * best.t
+    const oy = v.y + uy * best.t
+    const a = outline[best.k]
+    const b = outline[(best.k + 1) % 6]
+    const s = ((ox - a.x) * (b.x - a.x) + (oy - a.y) * (b.y - a.y)) / ((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
+    return { x: v.x, y: v.y, ox, oy, ux, uy, t: best.t, pos: best.k + s }
+  }
+
+  const harbors = []
+  const starts = []
+  let k = 0
+  for (const p of pieces) {
+    starts.push(k)
+    for (const [offset, type] of Object.entries(p.harbors)) {
+      const e = ring[k + Number(offset)]
+      harbors.push(makeHarbor(cells, cellVerts, e.cell, e.i, type))
+    }
+    k += p.len
+  }
+
+  // The joint at the start of each piece. Its number is the one at the
+  // clockwise end of the piece before: a long piece's own number, or the
+  // joint a short piece is slotted into.
+  const joints = pieces.map((p, idx) => {
+    const prev = pieces[(idx + pieces.length - 1) % pieces.length]
+    const s = seam(ring[starts[idx]].va)
+    return { ...s, label: prev.kind === 'long' ? prev.n : prev.joint }
+  })
+
+  // Each piece: along the coast from its first joint to its last, out along
+  // the seam, back round the outer edge (through any corners), and in again.
+  const piecesDrawn = pieces.map((p, idx) => {
+    const a = joints[idx]
+    const b = joints[(idx + 1) % pieces.length]
+    const edges = ring.slice(starts[idx], starts[idx] + p.len)
+    const coast = [verts[edges[0].va], ...edges.map((e) => verts[e.vb])]
+    let end = b.pos
+    if (end <= a.pos) end += 6
+    const corners = []
+    for (let j = Math.floor(a.pos) + 1; j < end; j++) corners.push(outline[j % 6])
+    const points = [...coast, { x: b.ox, y: b.oy }, ...corners.reverse(), { x: a.ox, y: a.oy }]
+    return { kind: p.kind, n: p.n ?? null, joint: p.joint ?? null, edges, points }
+  })
+
+  return { harbors, outline, joints, pieces: piecesDrawn, ring }
+}
+
 /**
  * Static structure for a layout: cells, adjacency, shared vertices, harbour
  * slots, and which cells the search may move. `setup` is 'variable' or
  * 'printed'; printed pins every cell the rulebook diagram fixes.
  */
-export function buildGeometry(layoutKey, setup = 'variable', frame = 'r0') {
-  const layout = getLayout(layoutKey, frame)
+export function buildGeometry(layoutKey, setup = 'variable') {
+  const layout = getLayout(layoutKey)
   if (!layout) throw new Error(`unknown board ${layoutKey}`)
   const cells = []
   const byRC = new Map()
@@ -170,9 +290,14 @@ export function buildGeometry(layoutKey, setup = 'variable', frame = 'r0') {
     return out
   })
 
-  const harbors = (layout.harbors || []).map(([r, c, edge, type]) =>
-    makeHarbor(cells, cellVerts, byRC.get(r + ',' + c), EDGES.indexOf(edge), type)
-  )
+  // Base-game boards take their harbours from the printed frame; Seafarers
+  // boards list the slots for their shuffled harbour tokens.
+  const frame = layout.frame ? buildFrame(layout.frame, cells, byRC, cellVerts, verts) : null
+  const harbors = frame
+    ? frame.harbors
+    : (layout.harbors || []).map(([r, c, edge, type]) =>
+        makeHarbor(cells, cellVerts, byRC.get(r + ',' + c), EDGES.indexOf(edge), type)
+      )
   // Printed-frame boards: every harbour type is fixed, so only the hexes move.
   const fixedHarbors = harbors.length > 0 && harbors.every((h) => h.fixed)
 
@@ -237,6 +362,7 @@ export function buildGeometry(layoutKey, setup = 'variable', frame = 'r0') {
     verts,
     cellVerts,
     byRC,
+    frame,
     harbors,
     fixedHarbors,
     pinned,
@@ -732,10 +858,9 @@ function computeStats(st, g) {
  * @param {string} o.seed
  * @param {{r68?: string, r212?: string}} [o.rules]  overrides for the mode's adjacency defaults
  * @param {'variable'|'printed'} [o.setup]  'printed' pins the rulebook diagram where it gives one
- * @param {string} [o.frame]  how the printed frame was assembled, see frameOptions()
  */
-export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides, setup = 'variable', frame = 'r0' }) {
-  const g = buildGeometry(layoutKey, setup, frame)
+export function generateBoard({ layoutKey, modeKey, game, seed, rules: overrides, setup = 'variable' }) {
+  const g = buildGeometry(layoutKey, setup)
   const modeName = MODES[modeKey] ? modeKey : 'advanced'
   const mode = MODES[modeName]
   const rules = { ...RULE_DEFAULTS[modeName], ...(overrides || {}) }

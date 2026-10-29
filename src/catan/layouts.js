@@ -9,20 +9,10 @@
  *   'L'  small-island land slot (Seafarers; the island shapes are fixed by the
  *        scenario, only terrain and numbers shuffle)
  *
- * Harbours are [row, col, edge, type] on the hex they belong to, listed
- * clockwise from the top-left corner. A type ('any' or a resource) means the
- * harbour is printed on the frame and never moves; a missing type means the
- * scenario places shuffled harbour tokens there (Seafarers flips the frame to
- * its all-sea side).
- *
- * The base-game frame was read off the physical pieces. The six long pieces
- * are numbered 1-6 and join clockwise as 1 → 6 → 5 → 4 → 3 → 2 → 1; the two
- * ends of each joint carry the same number ("the 5-5 joint"). Each long piece
- * covers five coast edges: two-harbour pieces have harbours on their first and
- * fourth edges, single-harbour pieces on the middle edge. The 5-6 extension's
- * four small pieces each cover the two outer edges of one corner hex, with the
- * harbour on the second edge, and the rulebook places them at the 2-2 (sea),
- * 3-3 (2:1 wool), 5-5 (3:1) and 6-6 (sea) joints.
+ * Base-game boards carry `frame`: the printed frame, piece by piece (see
+ * FRAME_34 below); the generator derives the harbours from it. Seafarers
+ * boards carry `harbors` instead, as [row, col, edge] slots for the shuffled
+ * harbour tokens, because Seafarers flips the frame to its all-sea side.
  */
 
 import { SCENARIO_BOARDS } from './scenarios.js'
@@ -64,56 +54,73 @@ const BASE_56 = {
   harbors: { any: 5, wood: 1, brick: 1, sheep: 2, wheat: 1, ore: 1 },
 }
 
-// Printed frame, 3-4 players. Piece 3 (3:1, wheat) along the top, then 2 (ore),
-// 1 (3:1, wool), 6 (3:1), 5 (3:1, brick), 4 (wood).
-const FRAME_34 = [
-  [0, 2, 'NW', 'any'],
-  [0, 3, 'NE', 'wheat'],
-  [1, 4, 'NE', 'ore'],
-  [2, 5, 'E', 'any'],
-  [3, 4, 'SE', 'sheep'],
-  [4, 3, 'SE', 'any'],
-  [4, 2, 'SW', 'any'],
-  [3, 1, 'W', 'brick'],
-  [1, 1, 'W', 'wood'],
-]
+/*
+ * The printed frame, read off photos of the real one assembled at the table.
+ *
+ * Six long pieces cover five coast edges each. Their ends are numbered and a
+ * joint joins two equal numbers ("the 4-4 joint"); going clockwise the joints
+ * read 4, 3, 2, 1, 6, 5. A long piece is named by the number at its clockwise
+ * end and carries that number plus one at the other end, so piece 3 runs from
+ * joint 4 to joint 3. Two-harbour pieces have harbours on their first and
+ * fourth edges, single-harbour pieces on the middle one.
+ *
+ * The 5-6 extension adds four short pieces of two edges, slotted into the
+ * 2-2 (sea), 3-3 (2:1 wool), 5-5 (3:1) and 6-6 (sea) joints, harbour on the
+ * second edge.
+ *
+ * Where the pieces can go is not a free choice. The inside of every long
+ * piece follows the same zigzag, so it can only start at a corner hex, and
+ * each board has exactly six corner hexes; the short pieces fill the gaps
+ * that leaves on the 5-6 board. So the frame fits each board one way, up to
+ * turning the whole board round, and these lists are that way: the pieces in
+ * order, clockwise from the north-west edge of the top row's first hex.
+ */
+const LONG = {
+  1: { harbors: { 0: 'any', 3: 'sheep' } },
+  2: { harbors: { 2: 'ore' } },
+  3: { harbors: { 0: 'any', 3: 'wheat' } },
+  4: { harbors: { 2: 'wood' } },
+  5: { harbors: { 0: 'any', 3: 'brick' } },
+  6: { harbors: { 2: 'any' } },
+}
+const long = (n) => ({ kind: 'long', n, len: 5, harbors: LONG[n].harbors })
+const short = (joint, harbor) => ({ kind: 'short', joint, len: 2, harbors: harbor ? { 1: harbor } : {} })
 
-// Printed frame, 5-6 players: the same six long pieces in the same order, with
-// the small pieces inserted at the top-right (3-3, wool), right (2-2, sea),
-// bottom-left (6-6, sea) and left (5-5, 3:1) corners.
+const FRAME_34 = [long(3), long(2), long(1), long(6), long(5), long(4)]
+
 const FRAME_56 = [
-  [0, 3, 'NW', 'any'],
-  [0, 4, 'NE', 'wheat'],
-  [0, 5, 'E', 'sheep'],
-  [2, 6, 'NE', 'ore'],
-  [4, 6, 'E', 'any'],
-  [5, 5, 'SE', 'sheep'],
-  [6, 4, 'SE', 'any'],
-  [5, 2, 'SW', 'any'],
-  [4, 2, 'W', 'brick'],
-  [3, 1, 'NW', 'any'],
-  [1, 2, 'W', 'wood'],
+  long(4),
+  long(3),
+  short(3, 'sheep'),
+  long(2),
+  short(2),
+  long(1),
+  long(6),
+  short(6),
+  long(5),
+  short(5, 'any'),
 ]
 
 export const LAYOUTS = {
   base4: {
     title: '3–4 players · 19 hexes',
     rows: ['..III', '.IIII', '.IIIII', '.IIII', '..III'],
-    harbors: FRAME_34,
+    frame: FRAME_34,
     main: BASE_34,
     isle: null,
     pirate: null,
-    frameNote: 'Harbours are the ones printed on the frame, pieces joined 1 → 6 → 5 → 4 → 3 → 2.',
+    frameNote:
+      'The frame is drawn as your pieces go together: join them so the numbers match at every joint, then turn the board until the joints line up with the picture.',
   },
   base6: {
     title: '5–6 players · 30 hexes',
     rows: ['...III', '..IIII', '..IIIII', '.IIIIII', '..IIIII', '..IIII', '...III'],
-    harbors: FRAME_56,
+    frame: FRAME_56,
     main: BASE_56,
     isle: null,
     pirate: null,
     frameNote:
-      'Harbours are the ones printed on the frame. Long pieces joined 1 → 6 → 5 → 4 → 3 → 2, small pieces at the 3-3 joint (2:1 wool), 2-2 (sea), 6-6 (sea) and 5-5 (3:1).',
+      'The frame is drawn as your pieces go together: join them so the numbers match at every joint, then turn the board until the joints line up with the picture. The pale pieces are the four short ones from the 5–6 extension, each slotted into the joint whose number it shows.',
   },
 }
 
@@ -235,75 +242,8 @@ export const SCENARIOS = [
 const BASE_TOKENS = { any: 4, wood: 1, brick: 1, sheep: 1, wheat: 1, ore: 1 }
 
 /** Resolve a layout key: 'base4', 'base6', or 'sea:<scenario>:<players>'. */
-/**
- * The printed frame can be assembled with any joint at the top-left corner
- * (six rotations of the ring) and, if the pieces are laid the other way round
- * the table, as the mirror image. `frame` is 'r<k>' or 'm<k>': mirrored or
- * not, then rotated k sixths of a turn clockwise. The 5-6 board is only
- * symmetric under half turns, so k is 0 or 3 there.
- */
-export function frameOptions(players) {
-  return players === 6
-    ? ['r0', 'r3', 'm0', 'm3']
-    : ['r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'm0', 'm1', 'm2', 'm3', 'm4', 'm5']
-}
-
-const EDGE_RING = ['NE', 'E', 'SE', 'SW', 'W', 'NW']
-const EDGE_MIRROR = { NE: 'NW', E: 'W', SE: 'SW', SW: 'SE', W: 'E', NW: 'NE' }
-
-/** odd-r offset -> cube coordinates */
-function toCube(r, c) {
-  const x = c - (r - (r & 1)) / 2
-  return [x, -x - r, r]
-}
-function fromCube(x, y, z) {
-  return [z, x + (z - (z & 1)) / 2]
-}
-
-/** Rotate harbours [r, c, edge, type] about the board centre and/or mirror them. */
-function transformHarbors(harbors, rows, frame) {
-  const m = /^([rm])(\d)$/.exec(frame || 'r0')
-  if (!m) return harbors
-  const mirror = m[1] === 'm'
-  const k = Number(m[2]) % 6
-  if (!mirror && k === 0) return harbors
-  const cubes = []
-  rows.forEach((row, r) => Array.from(row).forEach((ch, c) => ch !== '.' && cubes.push(toCube(r, c))))
-  const n = cubes.length
-  const cx = cubes.reduce((s, v) => s + v[0], 0) / n
-  const cy = cubes.reduce((s, v) => s + v[1], 0) / n
-  const cz = cubes.reduce((s, v) => s + v[2], 0) / n
-  return harbors.map(([r, c, edge, type]) => {
-    let [x, y, z] = toCube(r, c)
-    x -= cx
-    y -= cy
-    z -= cz
-    let e = EDGE_RING.indexOf(edge)
-    if (mirror) {
-      // reflection across the vertical axis: swap x and y in cube terms
-      const t = x
-      x = y
-      y = t
-      e = EDGE_RING.indexOf(EDGE_MIRROR[edge])
-    }
-    for (let i = 0; i < k; i++) {
-      // one sixth of a turn clockwise: (x, y, z) -> (-z, -x, -y)
-      const t = [-z, -x, -y]
-      x = t[0]
-      y = t[1]
-      z = t[2]
-      e = (e + 1) % 6
-    }
-    const [nr, nc] = fromCube(Math.round(x + cx), Math.round(y + cy), Math.round(z + cz))
-    return [nr, nc, EDGE_RING[e], type]
-  })
-}
-
-export function getLayout(key, frame = 'r0') {
-  if (LAYOUTS[key]) {
-    const L = LAYOUTS[key]
-    return { ...L, harbors: transformHarbors(L.harbors, L.rows, frame), tokens: L.main.harbors || BASE_TOKENS }
-  }
+export function getLayout(key) {
+  if (LAYOUTS[key]) return { ...LAYOUTS[key], tokens: LAYOUTS[key].main.harbors || BASE_TOKENS }
   const m = /^sea:(\w+):(\d)$/.exec(key)
   if (!m) return null
   const scen = SCENARIOS.find((s) => s.id === m[1])

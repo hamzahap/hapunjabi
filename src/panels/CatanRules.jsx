@@ -598,7 +598,7 @@ const FIGS = {
 // ---------- rule text ----------
 
 const BASE_STEPS = [
-  ['Set up', 'Shuffle the land hexes into the frame, lay the number discs, and put the robber on the desert. Each player places two settlements with a road; the second settlement pays out its three adjacent hexes.', 'setup'],
+  ['Set up', 'Put the frame together first, matching the number at every joint; a base-game board here shows each joint, so turn your frame until they line up. Then lay the land hexes and number discs inside as shown, and put the robber on the desert. Each player places two settlements with a road; the second settlement pays out its three adjacent hexes.', 'setup'],
   ['Your turn', 'Roll both dice. Every hex showing that number pays its resource to every settlement (1) and city (2) on its corners. Then trade with other players or through harbours, then build as much as you can afford.', 'turn'],
   ['Building costs', 'Roads must connect to your own road or building; settlements need a free corner with no building on any neighbouring corner; a city replaces one of your settlements.', 'costs'],
   ['The robber', 'A 7 pays nothing. Anyone holding more than 7 cards discards half, then the roller moves the robber to a new hex, blocks it, and steals a random card from a player with a building there. Knight cards do the same.', 'robber'],
