@@ -547,7 +547,7 @@ export const highlights = [
 ]
 
 export const dayJob = {
-  kicker: 'Software Developer · Dec 2023 to now',
+  kicker: 'Software Developer · 2023 to now',
   title: 'All Things Rugby and The Rugby App',
   org: 'AllThingsSports · AllThingsRugby · BinYousef — Doha',
   bullets: [
@@ -562,6 +562,11 @@ export const dayJob = {
     { label: 'allthingsrugby.com ↗', url: 'https://allthingsrugby.com/' },
   ],
   before: [
+    {
+      when: '2023',
+      what: 'Software Developer, Jet Concierge · Casa Amigos NL · The Barrel Thief',
+      note: "St. John's, Canada · IT systems, access control and POS for three businesses",
+    },
     {
       when: '2021 — 2022',
       what: 'Software Developer, SmartICE',

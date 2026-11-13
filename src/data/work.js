@@ -3,7 +3,7 @@ export const work = [
     role: 'Software Developer',
     org: 'AllThingsSports · AllThingsRugby · Bin Yousef',
     location: 'Doha, Qatar',
-    period: 'December 2023 — Present',
+    period: '2023 — Present',
     current: true,
     summary:
       'Own the backend and platform for All Things Rugby and The Rugby App — live scores, stats, highlights and editorial for 100k+ downloads.',
@@ -22,9 +22,26 @@ export const work = [
   },
   {
     role: 'Software Developer',
+    org: 'Jet Concierge Inc. · Casa Amigos NL · The Barrel Thief',
+    location: "St. John's, NL, Canada",
+    period: '2023',
+    current: false,
+    summary:
+      'IT systems and integration work across three businesses: security infrastructure, point-of-sale platforms and day-to-day operations.',
+    bullets: [
+      'Configured and maintained legacy IT systems across three businesses, supporting security infrastructure, point-of-sale (POS) platforms, and internal business operations.',
+      'Implemented role-based access control (RBAC), user permissions, and administrative configurations to improve system security and access management.',
+      'Jet Concierge Inc.: assisted with the deployment, configuration, and troubleshooting of security systems, access controls, and supporting software.',
+      'Casa Amigos NL & The Barrel Thief: configured and supported POS systems, staff access permissions, and restaurant technology infrastructure to keep daily operations reliable.',
+      'Diagnosed and resolved software, hardware, and system compatibility issues across multiple business environments.',
+    ],
+    tech: ['RBAC', 'POS systems', 'Access control', 'Security systems', 'IT administration'],
+  },
+  {
+    role: 'Software Developer',
     org: 'SmartICE',
     location: "St. John's, NL, Canada",
-    period: 'September 2021 — August 2022',
+    period: '2021 — 2022',
     current: false,
     summary:
       'Full-stack and embedded work on sea-ice monitoring technology used across northern communities.',
@@ -45,7 +62,7 @@ export const education = [
     role: 'BSc, Computer Science',
     org: 'Memorial University of Newfoundland and Labrador',
     location: "St. John's, NL, Canada",
-    period: 'January 2019 — August 2023',
+    period: '2019 — 2023',
     current: false,
     summary: 'GPA 3.46 · Faculty of Science Dean’s List 2022–23',
     bullets: [],
