@@ -12,6 +12,9 @@ const STATUS = {
 
 export const statusLabel = (p) => p.statusLabel || STATUS[p.status]
 
+const KIND = { game: 'Game', app: 'App', tool: 'Tool' }
+const kindOf = (p) => KIND[p.cat] || 'Tool'
+
 function Status({ project }) {
   return <span className={`ix-st st-${project.status}`}>{statusLabel(project)}</span>
 }
@@ -55,7 +58,7 @@ export function ProjectIndex({ list }) {
               <span className="ix-name">{p.name}</span>
               <span className="ix-line">{p.line}</span>
             </span>
-            <span className="ix-kind">{p.cat === 'game' ? 'Game' : 'Tool'}</span>
+            <span className="ix-kind">{kindOf(p)}</span>
             <Status project={p} />
           </a>
         ))}
@@ -65,7 +68,7 @@ export function ProjectIndex({ list }) {
 }
 
 export function ProjectFeature({ project: p }) {
-  const kind = p.cat === 'game' ? 'Game' : 'Tool'
+  const kind = kindOf(p)
   const kicker =
     p.kicker || `${kind} · ${p.year}${p.status === 'abandoned' ? ' · kept public on purpose' : ''}`
   return (

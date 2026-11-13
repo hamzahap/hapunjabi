@@ -3,6 +3,7 @@ import { Panel, Tags, Section, Bullets } from './Panel.jsx'
 const CATEGORY_LABEL = {
   'ai-tooling': 'AI tooling',
   games: 'Games',
+  mobile: 'Mobile apps',
   professional: 'Professional',
   data: 'Data / ML',
   tools: 'Tools',

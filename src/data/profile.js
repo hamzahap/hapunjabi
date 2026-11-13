@@ -12,7 +12,7 @@ export const profile = {
   site: 'https://hamzahap.dev',
   gamesSite: 'https://hamzahap.github.io/',
   // Root-relative: the same paths work from the homepage and from /terminal/.
-  resumePath: '/HamzahPunjabi_Resume.pdf',
+  resumePath: '/HamzahPunjabi_Resume_2Page.pdf',
   transcriptPath: '/FinalOfficialTranscript.pdf',
 }
 

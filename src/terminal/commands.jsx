@@ -453,7 +453,7 @@ export function buildRegistry() {
       hidden: true,
       run: () => (
         <Out tone="plain">
-          {' up 5 years, 2 jobs, 1 continent change'}
+          {' up 5 years, 3 jobs, 1 continent change'}
           {'\n'}
           <span className="faint"> load average: 0.94, 0.61, 0.15</span>
         </Out>

@@ -34,10 +34,12 @@ const CONTENTS = [
 const bySlug = new Map(homeProjects.map((p) => [p.slug, p]))
 const pieceBySlug = new Map(writing.map((w) => [w.slug, w]))
 const games = homeProjects.filter((p) => p.cat === 'game')
+const apps = homeProjects.filter((p) => p.cat === 'app')
 const tools = homeProjects.filter((p) => p.cat === 'tool')
 const FILTERS = [
   ['hl', 'Highlights', highlights.map((slug) => bySlug.get(slug))],
   ['game', `Games · ${games.length}`, games],
+  ['app', `Apps · ${apps.length}`, apps],
   ['tool', `Tools · ${tools.length}`, tools],
 ]
 
@@ -168,7 +170,7 @@ export default function Home() {
           hamzahap.dev
         </a>
         <span className="e-meta e-hide-sm">
-          Doha, Qatar · up 5 years, 2 jobs, 1 continent change
+          Doha, Qatar · up 5 years, 3 jobs, 1 continent change
         </span>
         <span className="e-bar-right">
           <DohaClock />

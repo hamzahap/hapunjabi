@@ -8,7 +8,7 @@
 
 import { blockArena, isOut } from './releases.js'
 
-export const CATEGORIES = ['professional', 'ai-tooling', 'games', 'data', 'tools', 'academic']
+export const CATEGORIES = ['professional', 'ai-tooling', 'games', 'mobile', 'data', 'tools', 'academic']
 
 const GH = 'https://github.com/hamzahap'
 const arenaOut = isOut(blockArena)
@@ -321,6 +321,74 @@ export const projects = [
     links: [],
   },
   {
+    slug: 'skycast',
+    name: 'SkyCast',
+    tagline: 'Native iOS weather app in SwiftUI.',
+    year: '2026',
+    tier: 'major',
+    category: 'mobile',
+    status: 'active',
+    description:
+      'A native iOS weather app on the keyless Open-Meteo API: debounced live city search, current conditions, a 7-day forecast with weekly temperature-range bars, and reorderable favourites saved on the device.',
+    highlights: [
+      'MVVM with @MainActor @Observable view models over a WeatherService protocol; async/await networking cancels stale responses, and a failed refresh keeps the last good forecast.',
+      '39 XCTest unit tests over recorded API fixtures and a mock service; CI generates the project with XcodeGen and runs the tests on the iOS Simulator.',
+    ],
+    tech: ['Swift', 'SwiftUI', 'iOS 17', 'async/await', 'XCTest', 'XcodeGen', 'GitHub Actions'],
+    links: [],
+  },
+  {
+    slug: 'habitflow',
+    name: 'HabitFlow',
+    tagline: 'Native Android habit tracker in Jetpack Compose.',
+    year: '2026',
+    tier: 'major',
+    category: 'mobile',
+    status: 'active',
+    description:
+      'A native Android habit tracker: add, tick off and delete daily habits with current and best streaks, persisted across restarts with Preferences DataStore and kotlinx.serialization.',
+    highlights: [
+      'MVVM with a ViewModel exposing StateFlow, a repository interface with DataStore and in-memory implementations, and an injectable clock so streak tests are deterministic.',
+      '25 JUnit tests, including streaks across month, year and leap-day boundaries; CI runs them and builds the debug APK.',
+    ],
+    tech: ['Kotlin', 'Jetpack Compose', 'Material 3', 'Coroutines', 'StateFlow', 'DataStore', 'JUnit'],
+    links: [],
+  },
+  {
+    slug: 'liftlog',
+    name: 'LiftLog',
+    tagline: 'Offline workout logger in Flutter.',
+    year: '2026',
+    tier: 'major',
+    category: 'mobile',
+    status: 'active',
+    description:
+      'An offline cross-platform workout logger: log sets with validation, see today\'s sets grouped by exercise with per-set and per-exercise volume, swipe to delete with undo, in light and dark Material 3.',
+    highlights: [
+      'Repository pattern over SharedPreferences and in-memory stores, with a ChangeNotifier controller whose optimistic updates roll back if a save fails.',
+      '32 unit and widget tests under strict analyzer settings; CI analyzes, tests and builds an Android APK.',
+    ],
+    tech: ['Flutter', 'Dart 3', 'Provider', 'shared_preferences', 'flutter_test'],
+    links: [],
+  },
+  {
+    slug: 'spendwise',
+    name: 'SpendWise',
+    tagline: 'Offline expense tracker in React Native.',
+    year: '2026',
+    tier: 'major',
+    category: 'mobile',
+    status: 'active',
+    description:
+      'A cross-platform offline expense tracker for iOS and Android: categorised expenses, month-by-month navigation with running totals, a per-category spending breakdown, and delete with one-tap undo.',
+    highlights: [
+      'Reducer-driven state over a repository interface; money is kept as integer cents, and versioned, validated storage drops a corrupt record instead of failing the whole load.',
+      '43 Jest tests, from money parsing and month rollover up to full add, undo and save-failure flows with React Native Testing Library; CI also exports Android and iOS bundles.',
+    ],
+    tech: ['React Native', 'Expo', 'TypeScript', 'AsyncStorage', 'Jest', 'React Native Testing Library'],
+    links: [],
+  },
+  {
     slug: 'tasktracker',
     name: 'TaskTracker',
     tagline: 'Task API where the architecture rules are enforced by the test suite.',
@@ -537,6 +605,10 @@ const PROC = {
   'block-arena': arenaOut
     ? { pid: 17, stat: 'S', cpu: 14.0, uptime: '6mo' }
     : { pid: 17, stat: 'R', cpu: 52.0, uptime: '6mo' },
+  skycast: { pid: 22, stat: 'S', cpu: 3.0, uptime: '0d' },
+  habitflow: { pid: 23, stat: 'S', cpu: 2.5, uptime: '0d' },
+  liftlog: { pid: 24, stat: 'S', cpu: 2.5, uptime: '0d' },
+  spendwise: { pid: 25, stat: 'S', cpu: 3.5, uptime: '0d' },
   tasktracker: { pid: 12, stat: 'R', cpu: 9.5, uptime: '0d' },
   bookmanagement: { pid: 13, stat: 'R', cpu: 8.2, uptime: '0d' },
   aoc2025: { pid: 21, stat: 'T', cpu: 0.4, uptime: '7mo' },
